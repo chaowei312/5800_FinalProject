@@ -1,0 +1,5 @@
+{
+  "model_name": "bert-base-uncased",
+  "max_length": 256,
+  "vocab_size": 30522
+}

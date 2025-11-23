@@ -15,16 +15,27 @@ Use this as a guide for your **2-page max** project proposal (one per group). Yo
 ## 2. Problem statement & motivation
 
 - **Task**: What are you trying to do? (e.g., sentiment classification, QA, code generation, tool-using agent)
+  - Sentiment classification using a recurrent Transformer architecture for better parameter efficiency.
 - **Why it matters**: Briefly explain why this problem is interesting or important (scientifically or practically).
+  - Sentiment signals enable downstream industrial pipelines, such as education grading and evaluation workflows.
+  - A recurrent Transformer can generalize better while supporting reasoning-style, stepwise conditioning in a compact model.
 - **Desired outcome**: What will success look like in 3 weeks?
-
+  - Benchmark against an encoder baseline, demonstrating measurable performance gains while keeping the recurrent model smaller and within a comparable training budget.
 ---
 
 ## 3. Datasets
 
-- **Primary dataset(s)**: Name, source (link), size (# examples, languages, domains)
-- **Preprocessing**: What cleaning/tokenization/formatting is needed?
-- **Train/val/test split**: How will you split or use existing splits?
+- **Primary dataset(s)**:
+  - *SST-2 (Stanford Sentiment Treebank v2)* – [GLUE benchmark](https://huggingface.co/datasets/glue/viewer/sst2/train) with 67k English movie-review sentences labeled positive/negative.
+  - *Yelp Review Polarity* (optional scale-up) – [Hugging Face](https://huggingface.co/datasets/yelp_polarity) release with 560k English business reviews (binary sentiment).
+- **Preprocessing**:
+  - **Normalization**: Standardize text by lowercasing and normalizing whitespace. Truncate sequences to 256 tokens to optimize GPU memory usage.
+  - **Tokenization**: Use Hugging Face `AutoTokenizer` (initialized from the baseline checkpoint) or the `tokenizers` library/SentencePiece to map text to token IDs.
+  - **Embeddings**: Freeze the tokenizer vocabulary but keep the embedding layer trainable to adapt representations to the sentiment task.
+  - **Label Mapping (Yelp)**: If using Yelp, map 4–5 stars → positive and 1–2 stars → negative; filter out reviews >512 tokens.
+- **Train/val/test split**:
+  - SST-2: follow GLUE splits (≈67k train, 872 dev, 1,821 test) and carve out 5% of the train set as an internal validation set for hyperparameters.
+  - Yelp: use official 560k train / 38k test split and reserve 10k samples from the train portion as validation when needed.
 
 ---
 

@@ -1,0 +1,36 @@
+{
+  "recurrent_enhancements": {
+    "recurrent_depth": 1,
+    "share_weights_across_depth": false,
+    "residual_scale": 0.5,
+    "memory_efficient": true
+  },
+  "architectural_enhancements": {
+    "use_flash_attention": true,
+    "use_swiglu": true,
+    "use_rope": true,
+    "use_rms_norm": true
+  },
+  "recurrent_depth_presets": {
+    "shallow_recurrent": {
+      "num_hidden_layers": 2,
+      "recurrent_depth": 3,
+      "description": "2 layers × 3 iterations = 6 effective depth, minimal parameters"
+    },
+    "balanced": {
+      "num_hidden_layers": 3,
+      "recurrent_depth": 2,
+      "description": "3 layers × 2 iterations = 6 effective depth, good balance"
+    },
+    "deep_standard": {
+      "num_hidden_layers": 6,
+      "recurrent_depth": 1,
+      "description": "6 layers × 1 iteration = 6 effective depth, standard approach"
+    },
+    "ultra_deep": {
+      "num_hidden_layers": 1,
+      "recurrent_depth": 6,
+      "description": "1 layer × 6 iterations = 6 effective depth, extreme efficiency"
+    }
+  }
+}

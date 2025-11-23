@@ -1,0 +1,76 @@
+# Data files (exclude raw data but keep processed small files)
+data/raw/
+data/processed/*.csv
+*.csv
+!data/processed/*.pkl  # Keep processed pickle files if small
+
+# Model checkpoints and weights
+checkpoints/
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.safetensors
+bert-*/
+pretrained_models/
+
+# Keep visualization results but exclude huge logs
+logs/**/checkpoint*.pt
+logs/**/*.json
+logs/**/*.csv
+# Keep training plots
+!logs/**/*.png
+
+# Keep tuning result visualizations
+!tuning_results/*.png
+!tuning_results/*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+~*
+*.log
+
+# System files
+Thumbs.db
+desktop.ini
+
+# Exclude test files
+test_*.py
+*_test.py
+
+# But keep all source code
+!*.py
+!*.ipynb
+!*.md
+!*.txt
+!configs/*.json
