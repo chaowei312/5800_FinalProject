@@ -56,6 +56,7 @@ $$\text{FFN}(\mathbf{x}) = \begin{cases}
 \mathbf{W}_2 \cdot \text{GELU}(\mathbf{x}\mathbf{W}_1) + \mathbf{b}_2 & \text{otherwise}
 \end{cases}$$
 
+
 where $\text{GELU}(x) = x \cdot \Phi(x)$ and $\Phi$ is the standard Gaussian CDF.
 
 **Classification:**
@@ -148,8 +149,11 @@ The input embedding combines three components:
 $$\mathbf{E}(\mathbf{x}) = \mathbf{E}_{\text{token}} + \mathbf{E}_{\text{position}} + \mathbf{E}_{\text{segment}}$$
 
 where:
+
 - $\mathbf{E}_{\text{token}} \in \mathbb{R}^{d_{\text{model}}}$: Token embeddings
+
 - $\mathbf{E}_{\text{position}} \in \mathbb{R}^{d_{\text{model}}}$: Position embeddings (or RoPE)
+
 - $\mathbf{E}_{\text{segment}} \in \mathbb{R}^{d_{\text{model}}}$: Segment/type embeddings
 
 #### Model Dimensions
