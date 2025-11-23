@@ -42,12 +42,6 @@ build/
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-.DS_Store
 
 # Environment variables
 .env
@@ -63,10 +57,6 @@ build/
 # System files
 Thumbs.db
 desktop.ini
-
-# Exclude test files
-test_*.py
-*_test.py
 
 # But keep all source code
 !*.py
