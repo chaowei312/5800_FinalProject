@@ -25,9 +25,11 @@ The baseline model implements a standard multi-layer transformer with pre-norm a
 $$\mathbf{f}: \mathcal{X} \rightarrow \mathcal{Y}, \quad \mathbf{f}(\mathbf{x}) = \text{softmax}(\mathbf{W}_c \cdot \text{TransformerStack}(\text{Embed}(\mathbf{x})))$$
 
 **Input Embedding:**
+
 $$\mathbf{h}_0 = \text{LayerNorm}(\mathbf{W}_e[\mathbf{x}] + \mathbf{P}(\text{pos}) + \mathbf{T}(\text{type}))$$
 
 **Transformer Layer** (pre-norm residual):
+
 $$\begin{align}
 \mathbf{h}'_l &= \mathbf{h}_{l-1} + \text{Dropout}(\text{MultiHeadAttn}(\text{Norm}_1(\mathbf{h}_{l-1}))) \\
 \mathbf{h}_l &= \mathbf{h}'_l + \text{Dropout}(\text{FFN}(\text{Norm}_2(\mathbf{h}'_l)))
@@ -36,15 +38,19 @@ $$\begin{align}
 where $\text{Norm} \in \{\text{LayerNorm}, \text{RMSNorm}\}$ based on configuration.
 
 **Multi-Head Attention:**
+
 $$\text{MultiHeadAttn}(\mathbf{x}) = \mathbf{W}_O \cdot \text{Concat}(\text{head}_1, ..., \text{head}_h)$$
 
 where each attention head is computed as:
+
 $$\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i) = \text{softmax}\left(\frac{\mathbf{Q}_i\mathbf{K}_i^T}{\sqrt{d_k}}\right)\mathbf{V}_i$$
 
 with projections:
+
 $$\mathbf{Q}_i = \mathbf{x}\mathbf{W}^Q_i, \quad \mathbf{K}_i = \mathbf{x}\mathbf{W}^K_i, \quad \mathbf{V}_i = \mathbf{x}\mathbf{W}^V_i$$
 
 **Feed-Forward Network** (with optional SwiGLU):
+
 $$\text{FFN}(\mathbf{x}) = \begin{cases}
 \text{SwiGLU}(\mathbf{x}) & \text{if use\_swiglu} \\
 \mathbf{W}_2 \cdot \text{GELU}(\mathbf{x}\mathbf{W}_1) + \mathbf{b}_2 & \text{otherwise}
@@ -53,6 +59,7 @@ $$\text{FFN}(\mathbf{x}) = \begin{cases}
 where $\text{GELU}(x) = x \cdot \Phi(x)$ and $\Phi$ is the standard Gaussian CDF.
 
 **Classification:**
+
 $$\mathbf{y} = \arg\max(\mathbf{W}_c \cdot \mathbf{h}_L[0, :])$$
 
 #### Recurrent Transformer
@@ -61,14 +68,17 @@ The recurrent model iterates through fewer layers multiple times with cross-iter
 $$\mathbf{g}: \mathcal{X} \rightarrow \mathcal{X}, \quad \mathbf{g}^{(t)}(\mathbf{x}) = \mathbf{x}^{(t+1)}$$
 
 **Recurrent Processing:**
+
 $$\mathbf{h}^{(r+1)} = \text{TransformerLayers}(\mathbf{h}^{(r)}) + \alpha \cdot \mathbf{h}^{(r)}$$
 
 where $r \in [1, R_{\text{depth}}]$ is the recurrence iteration and $\alpha = 0.5$ is the residual scale.
 
 **Effective Depth:**
+
 $$D_{\text{eff}} = N_{\text{layers}} \times R_{\text{depth}}$$
 
 **Parameter Efficiency:**
+
 $$|\theta_{\text{recurrent}}| = \frac{|\theta_{\text{baseline}}|}{R_{\text{depth}}} + \epsilon$$
 
 where $\epsilon$ accounts for additional residual connections.
@@ -81,9 +91,11 @@ Encodes position information through rotation matrices in complex space:
 $$\text{RoPE}(\mathbf{x}_m, m) = \mathbf{x}_m \odot e^{im\theta}$$
 
 where the rotation frequencies are:
+
 $$\theta_j = 10000^{-2j/d}, \quad j \in [0, d/2]$$
 
 Applied to query-key pairs:
+
 $$\mathbf{q}_m' = \text{RoPE}(\mathbf{q}_m, m), \quad \mathbf{k}_n' = \text{RoPE}(\mathbf{k}_n, n)$$
 
 #### 2. **Flash Attention**
@@ -101,6 +113,7 @@ Gated linear unit with Swish activation for improved gradient flow:
 $$\text{SwiGLU}(\mathbf{x}) = (\mathbf{x} \mathbf{W}_1 + \mathbf{b}_1) \odot \text{Swish}(\mathbf{x} \mathbf{W}_2 + \mathbf{b}_2)$$
 
 where Swish activation is:
+
 $$\text{Swish}(x) = x \cdot \sigma(\beta x) = \frac{x}{1 + e^{-\beta x}}$$
 
 #### 4. **RMS Normalization**
@@ -109,9 +122,11 @@ Root Mean Square normalization for training stability:
 $$\text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\text{RMS}(\mathbf{x})} \cdot \gamma$$
 
 where:
+
 $$\text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{d}\sum_{i=1}^{d} x_i^2 + \epsilon}$$
 
 Compare with standard LayerNorm:
+
 $$\text{LayerNorm}(\mathbf{x}) = \frac{\mathbf{x} - \mu(\mathbf{x})}{\sigma(\mathbf{x})} \cdot \gamma + \beta$$
 
 - RMSNorm is more efficient: $O(d)$ vs $O(2d)$ operations
@@ -122,12 +137,14 @@ $$\text{LayerNorm}(\mathbf{x}) = \frac{\mathbf{x} - \mu(\mathbf{x})}{\sigma(\mat
 
 #### WordPiece Tokenization
 Text is tokenized using BERT's WordPiece algorithm:
+
 $$\text{text} \xrightarrow{\text{WordPiece}} [\text{CLS}, t_1, t_2, ..., t_n, \text{SEP}]$$
 
 where $t_i \in \mathcal{V}$ and $|\mathcal{V}| = 30,522$.
 
 #### Embedding Composition
 The input embedding combines three components:
+
 $$\mathbf{E}(\mathbf{x}) = \mathbf{E}_{\text{token}} + \mathbf{E}_{\text{position}} + \mathbf{E}_{\text{segment}}$$
 
 where:
@@ -210,14 +227,25 @@ where:
   - Model sizes: 3-10M parameters
   - Batch size: 16-32 samples
   - Training time: ~30 minutes per model on GPU
-- **Other resources**: Local NVIDIA GPU (CUDA-enabled), CPU fallback supported
+- **Other resources**: NVIDIA GPU 1 RTX 5090
 
 ---
 
 ## 7. Risks & scope
 
-- **What could go wrong?** (e.g., data too noisy, model too big to train, evaluation too hard)
-- **Plan B**: If your original idea is too ambitious, what scaled-down version will you execute?
+- **What could go wrong?** 
+  - **Convergence Issues**: Recurrent model might fail to converge when reusing same parameters across deeper iterations
+    - Risk of gradient vanishing/exploding through repeated parameter application
+    - Potential representation collapse when $R_{\text{depth}} > 3$
+  - **Training Instability**: Cross-iteration residuals ($\alpha \cdot \mathbf{h}^{(r)}$) may cause optimization challenges
+  - **Performance Degradation**: Deeper recurrence might not improve or even hurt performance vs baseline
+
+- **Plan B**: 
+  - **Hierarchical Conditioning**: Introduce a separate lightweight transformer between recurrence steps:
+    $$\mathbf{h}^{(r+1)} = \text{PersistentBlock}(\text{ConditioningLayer}_r(\mathbf{h}^{(r)}))$$
+    where $\text{ConditioningLayer}_r$ is a small transformer that adds inter-iteration conditioning
+  - **Adaptive Residual Scaling**: Learn $\alpha_r$ per iteration instead of fixed $\alpha = 0.5$
+  - **Fallback to Standard Architecture**: If recurrent approach fails, compare different depth/width trade-offs in standard transformers
 
 ---
 
