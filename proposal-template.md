@@ -51,10 +51,12 @@ $$\mathbf{Q}_i = \mathbf{x}\mathbf{W}^Q_i, \quad \mathbf{K}_i = \mathbf{x}\mathb
 
 **Feed-Forward Network** (with optional SwiGLU):
 
-$$\text{FFN}(\mathbf{x}) = \begin{cases}
-\text{SwiGLU}(\mathbf{x}) & \text{if use\_swiglu} \\
+$$
+\text{FFN}(\mathbf{x}) = \begin{cases}
+\text{SwiGLU}(\mathbf{x}) & \text{if } \texttt{use\_swiglu} \\
 \mathbf{W}_2 \cdot \text{GELU}(\mathbf{x}\mathbf{W}_1) + \mathbf{b}_2 & \text{otherwise}
-\end{cases}$$
+\end{cases}
+$$
 
 
 where $\text{GELU}(x) = x \cdot \Phi(x)$ and $\Phi$ is the standard Gaussian CDF.
@@ -148,13 +150,11 @@ The input embedding combines three components:
 
 $$\mathbf{E}(\mathbf{x}) = \mathbf{E}_{\text{token}} + \mathbf{E}_{\text{position}} + \mathbf{E}_{\text{segment}}$$
 
-where:
+where each component corresponds to:
 
-- $\mathbf{E}_{\text{token}} \in \mathbb{R}^{d_{\text{model}}}$: Token embeddings
-
-- $\mathbf{E}_{\text{position}} \in \mathbb{R}^{d_{\text{model}}}$: Position embeddings (or RoPE)
-
-- $\mathbf{E}_{\text{segment}} \in \mathbb{R}^{d_{\text{model}}}$: Segment/type embeddings
+- **Token embeddings**: $\mathbf{E}_{\text{token}} \in \mathbb{R}^{d_{\text{model}}}$
+- **Position embeddings**: $\mathbf{E}_{\text{position}} \in \mathbb{R}^{d_{\text{model}}}$ (or RoPE)
+- **Segment embeddings**: $\mathbf{E}_{\text{segment}} \in \mathbb{R}^{d_{\text{model}}}$
 
 #### Model Dimensions
 - **Baseline**: $d_{\text{model}} = 384$, $d_{\text{ff}} = 1536$
