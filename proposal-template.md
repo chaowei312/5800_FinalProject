@@ -198,23 +198,23 @@ where:
 ### Core Improvements Implemented
 
 1. **Recurrent Transformer Architecture**
-   - Iterate through fewer transformer layers multiple times (e.g., 3 layers × 2 iterations)
-   - Residual connections across iterations: **h^{(i+1)} = TransformerLayers(h^{(i)}) + 0.5 · h^{(i)}**
+   - Iterate through fewer transformer layers multiple times (e.g., $3$ layers $\times$ $2$ iterations)
+   - Residual connections across iterations: $\mathbf{h}^{(i+1)} = \text{TransformerLayers}(\mathbf{h}^{(i)}) + 0.5 \cdot \mathbf{h}^{(i)}$
    - Achieves 64% parameter reduction while maintaining comparable performance
 
 2. **Advanced Optimization Techniques**
    - Early stopping with patience=3 and validation loss tracking
    - Learning rate scheduling with ReduceLROnPlateau
-   - Gradient clipping (max_norm=1.0) for stable training
+   - Gradient clipping ($\|\nabla\|_{\text{max}} = 1.0$) for stable training
    - Mixed precision training support for faster computation
 
 3. **Hyperparameter Sensitivity Analysis**
-   - Grid search over architectural parameters (hidden_size, num_layers, recurrent_depth)
+   - Grid search over architectural parameters ($d_{\text{model}}$, $N_{\text{layers}}$, $R_{\text{depth}}$)
    - Bubble plot visualizations: Accuracy vs Model Size vs Inference Time
    - Pareto frontier analysis for optimal configuration selection
 
 4. **Width vs Depth Trade-off Study**
-   - Compare wide-shallow (512×6) vs narrow-deep (384×3×2) architectures
+   - Compare wide-shallow ($512 \times 6$) vs narrow-deep ($384 \times 3 \times 2$) architectures
    - Analyze parameter efficiency: accuracy per million parameters
    - Measure inference latency differences at similar computational budgets
 
@@ -242,7 +242,9 @@ where:
 
 - **Plan B**: 
   - **Hierarchical Conditioning**: Introduce a separate lightweight transformer between recurrence steps:
+
     $$\mathbf{h}^{(r+1)} = \text{PersistentBlock}(\text{ConditioningLayer}_r(\mathbf{h}^{(r)}))$$
+    
     where $\text{ConditioningLayer}_r$ is a small transformer that adds inter-iteration conditioning
   - **Adaptive Residual Scaling**: Learn $\alpha_r$ per iteration instead of fixed $\alpha = 0.5$
   - **Fallback to Standard Architecture**: If recurrent approach fails, compare different depth/width trade-offs in standard transformers
