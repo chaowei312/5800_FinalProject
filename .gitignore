@@ -6,7 +6,7 @@ data/processed/*.csv
 
 # Model checkpoints and weights
 checkpoints/
-# *.pt
+*.pt
 *.pth
 *.bin
 *.ckpt
