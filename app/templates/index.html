@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Classification App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🤖 Review Classification App</h1>
+            <p class="subtitle">Sentiment & Domain Analysis with Transformer Models</p>
+        </header>
+
+        <!-- Model Selector -->
+        <div class="model-selector">
+            <h3>Select Model Architecture:</h3>
+            <div class="model-buttons">
+                <button class="model-btn active" data-model="baseline" id="btn-baseline">
+                    <span class="model-icon">📊</span>
+                    <span class="model-name">Standard Transformer</span>
+                    <span class="model-desc">Baseline architecture</span>
+                </button>
+                <button class="model-btn" data-model="recurrent" id="btn-recurrent">
+                    <span class="model-icon">🔄</span>
+                    <span class="model-name">Recurrent Transformer</span>
+                    <span class="model-desc">Iterative refinement</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <h3>Enter Text to Classify:</h3>
+            <textarea 
+                id="text-input" 
+                placeholder="Type or paste your text here... (e.g., 'This movie was amazing!', 'Great product, fast shipping!', 'Excellent food and service!')"
+                rows="6"
+            ></textarea>
+            
+            <div class="button-group">
+                <button id="classify-btn" class="primary-btn">
+                    <span class="btn-icon">🔍</span>
+                    Classify Text
+                </button>
+                <button id="clear-btn" class="secondary-btn">
+                    <span class="btn-icon">🗑️</span>
+                    Clear
+                </button>
+            </div>
+
+            <!-- Examples -->
+            <div class="examples">
+                <p><strong>Try these examples:</strong></p>
+                <div class="example-buttons">
+                    <button class="example-btn" data-text="This movie was absolutely fantastic! Best film I've seen this year!">🎬 Movie Review</button>
+                    <button class="example-btn" data-text="Fast shipping and excellent product quality. Highly recommended!">🛒 Shopping Review</button>
+                    <button class="example-btn" data-text="Amazing restaurant with incredible food and friendly staff!">🍽️ Local Business Review</button>
+                    <button class="example-btn" data-text="Terrible experience. Very disappointed with the service.">😞 Negative Review</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Classifying text...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results hidden">
+            <h3>Classification Results</h3>
+            
+            <!-- Model Info -->
+            <div class="model-info">
+                <span class="model-badge" id="model-badge">Standard Transformer</span>
+            </div>
+
+            <!-- Input Text Display -->
+            <div class="result-card">
+                <div class="result-header">
+                    <span class="result-icon">📝</span>
+                    <h4>Input Text</h4>
+                </div>
+                <div class="result-content">
+                    <p id="result-text" class="input-text"></p>
+                </div>
+            </div>
+
+            <!-- Sentiment Results -->
+            <div class="result-card">
+                <div class="result-header">
+                    <span class="result-icon">💭</span>
+                    <h4>Sentiment Classification</h4>
+                </div>
+                <div class="result-content">
+                    <div class="result-main">
+                        <span class="result-label" id="sentiment-label"></span>
+                        <span class="result-confidence" id="sentiment-confidence"></span>
+                    </div>
+                    <div class="probability-bars">
+                        <div class="prob-item">
+                            <span class="prob-label">Negative</span>
+                            <div class="prob-bar-container">
+                                <div class="prob-bar prob-negative" id="prob-negative"></div>
+                            </div>
+                            <span class="prob-value" id="val-negative"></span>
+                        </div>
+                        <div class="prob-item">
+                            <span class="prob-label">Positive</span>
+                            <div class="prob-bar-container">
+                                <div class="prob-bar prob-positive" id="prob-positive"></div>
+                            </div>
+                            <span class="prob-value" id="val-positive"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Domain Results -->
+            <div class="result-card">
+                <div class="result-header">
+                    <span class="result-icon">🏷️</span>
+                    <h4>Domain Classification</h4>
+                </div>
+                <div class="result-content">
+                    <div class="result-main">
+                        <span class="result-label" id="domain-label"></span>
+                        <span class="result-confidence" id="domain-confidence"></span>
+                    </div>
+                    <div class="probability-bars">
+                        <div class="prob-item">
+                            <span class="prob-label">Movie Review</span>
+                            <div class="prob-bar-container">
+                                <div class="prob-bar prob-domain" id="prob-movie"></div>
+                            </div>
+                            <span class="prob-value" id="val-movie"></span>
+                        </div>
+                        <div class="prob-item">
+                            <span class="prob-label">Online Shopping</span>
+                            <div class="prob-bar-container">
+                                <div class="prob-bar prob-domain" id="prob-shopping"></div>
+                            </div>
+                            <span class="prob-value" id="val-shopping"></span>
+                        </div>
+                        <div class="prob-item">
+                            <span class="prob-label">Local Business</span>
+                            <div class="prob-bar-container">
+                                <div class="prob-bar prob-domain" id="prob-business"></div>
+                            </div>
+                            <span class="prob-value" id="val-business"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="error" class="error hidden">
+            <span class="error-icon">⚠️</span>
+            <p id="error-message"></p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by Baseline & Recurrent Transformer Models | Built with Flask</p>
+            <p class="footer-links">
+                <a href="/api/info" target="_blank">API Info</a> •
+                <a href="/health" target="_blank">Health Check</a> •
+                <a href="https://github.com" target="_blank">GitHub</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+

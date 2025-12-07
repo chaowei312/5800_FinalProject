@@ -1,0 +1,41 @@
+【文本分类Web应用】
+
+## 🌐 启动方法
+
+```bash
+python app/web_app.py
+```
+
+然后在浏览器打开: http://localhost:5000
+
+## ✨ 功能特点
+
+- 🔄 **模型切换**: 一键切换Standard和Recurrent Transformer
+- 💭 **情感分类**: 正面/负面
+- 🏷️ **领域分类**: 电影评论/在线购物/本地商家
+- 📊 **可视化**: 彩色概率条形图
+- 📱 **响应式**: 支持手机和平板
+
+## 🎯 快速使用
+
+1. 点击选择模型（Standard 或 Recurrent）
+2. 输入或粘贴文本
+3. 点击"Classify Text"按钮
+4. 查看分类结果和概率分布
+
+## ⌨️ 键盘快捷键
+
+- `Ctrl+Enter` - 执行分类
+- `Ctrl+K` - 聚焦输入框
+- `Escape` - 清除内容
+
+## 📚 完整文档
+
+详细使用指南请查看: [WEB_APP_GUIDE.md](../WEB_APP_GUIDE.md)
+
+## 🔧 技术架构
+
+- **后端**: Flask + PyTorch
+- **前端**: HTML5 + CSS3 + JavaScript
+- **模型**: Baseline & Recurrent Transformers
+

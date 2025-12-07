@@ -198,7 +198,7 @@ def prepare_yelp_data(
     max_length: int = 128
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """
-    Prepare SST-2 data loaders.
+    Prepare yelp data loaders.
     
     Args:
         data_dir: Directory containing processed data

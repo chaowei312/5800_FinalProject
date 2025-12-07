@@ -53,6 +53,7 @@ build/
 *.backup
 ~*
 *.log
+*.DS_Store
 
 # System files
 Thumbs.db
