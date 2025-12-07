@@ -191,6 +191,54 @@ def load_tokenizer(model_type: str = 'bert-base-uncased') -> AutoTokenizer:
     return tokenizer
 
 
+def prepare_yelp_data(
+    data_dir: str = 'data/processed',
+    tokenizer = None,
+    batch_size: int = 32,
+    max_length: int = 128
+) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    """
+    Prepare SST-2 data loaders.
+    
+    Args:
+        data_dir: Directory containing processed data
+        tokenizer: Tokenizer instance (if None, will load default)
+        batch_size: Batch size
+        max_length: Maximum sequence length
+        
+    Returns:
+        Tuple of (train_loader, val_loader, test_loader)
+    """
+    if tokenizer is None:
+        tokenizer = load_tokenizer('bert-base-uncased')
+    
+    # Create data loaders
+    train_loader = create_data_loader(
+        os.path.join(data_dir, 'yelp_train.pkl'),
+        tokenizer,
+        batch_size=batch_size,
+        max_length=max_length,
+        shuffle=True
+    )
+    
+    val_loader = create_data_loader(
+        os.path.join(data_dir, 'yelp_internal_val.pkl'),
+        tokenizer,
+        batch_size=batch_size,
+        max_length=max_length,
+        shuffle=False
+    )
+    
+    test_loader = create_data_loader(
+        os.path.join(data_dir, 'yelp_val.pkl'),
+        tokenizer,
+        batch_size=batch_size,
+        max_length=max_length,
+        shuffle=False
+    )
+    
+    return train_loader, val_loader, test_loader
+
 def prepare_sst2_data(
     data_dir: str = 'data/processed',
     tokenizer = None,
@@ -238,7 +286,6 @@ def prepare_sst2_data(
     )
     
     return train_loader, val_loader, test_loader
-
 
 def collate_fn(batch: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
     """
