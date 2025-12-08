@@ -1,13 +1,15 @@
-# ANLY-5800 Final Project – Proposal Template
-
-Use this as a guide for your **2-page max** project proposal (one per group). You can write it directly in this file or a separate PDF in your repo.
+# ANLY-5800 Final Project – Proposal
 
 ---
 
 ## 1. Team
 
-- **Project title**: Recurrent vs Standard Transformers: A Comparative Analysis of Parameter Efficiency in Sentiment Classification
-- **Team members**: [Names & NetIDs]
+- **Project title**: Recurrent vs Standard Transformers: Parameter-Efficient Modeling for Sentiment and Review Classification
+- **Team members**: 
+  - Chenxi Guo & cg1372
+  - Jiayi Peng & jp2132
+  - Chaowei Wang & cw1278
+  - Junchen Han & jh2732
 - **Preferred track**: **(D) Analysis** - Architectural comparison and efficiency study
 
 ---
@@ -15,7 +17,7 @@ Use this as a guide for your **2-page max** project proposal (one per group). Yo
 ## 2. Problem statement & motivation
 
 - **Task**: What are you trying to do? (e.g., sentiment classification, QA, code generation, tool-using agent)
-  - Sentiment classification using a recurrent Transformer architecture for better parameter efficiency.
+  - Sentiment classification using a recurrent Transformer architecture to investigate parameter efficiency, with an additional review-type classification task included to test generalization.
 
 ### Mathematical Formulations
 
@@ -49,13 +51,20 @@ with projections:
 
 $$\mathbf{Q}_i = \mathbf{x}\mathbf{W}^Q_i, \quad \mathbf{K}_i = \mathbf{x}\mathbf{W}^K_i, \quad \mathbf{V}_i = \mathbf{x}\mathbf{W}^V_i$$
 
-**Feed-Forward Network** (with optional SwiGLU):
+**Feed-Forward Network (with optional SwiGLU)**
 
 $$
-\text{FFN}(\mathbf{x}) = \begin{cases}
-\text{SwiGLU}(\mathbf{x}) & \text{if } \texttt{use\_swiglu} \\
-\mathbf{W}_2 \cdot \text{GELU}(\mathbf{x}\mathbf{W}_1) + \mathbf{b}_2 & \text{otherwise}
+\mathrm{FFN}(\mathbf{x}) =
+\begin{cases}
+\mathrm{FFN}_{\text{SwiGLU}}(\mathbf{x}) & \text{if } \text{use\_swiglu} = 1, \\
+\mathbf{W}_2 \, \mathrm{GELU}(\mathbf{x}\mathbf{W}_1 + \mathbf{b}_1) + \mathbf{b}_2 & \text{if } \text{use\_swiglu} = 0.
 \end{cases}
+$$
+
+$$
+\mathrm{FFN}_{\text{SwiGLU}}(\mathbf{x})
+= \mathbf{W}_2 \big( \big( \mathbf{x}\mathbf{W}_1^{(1)} + \mathbf{b}_1^{(1)} \big)
+\odot \mathrm{SiLU}(\mathbf{x}\mathbf{W}_1^{(2)} + \mathbf{b}_1^{(2)}) \big) + \mathbf{b}_2.
 $$
 
 
@@ -171,15 +180,32 @@ where each component corresponds to:
 ## 3. Datasets
 
 - **Primary dataset(s)**:
-  - *SST-2 (Stanford Sentiment Treebank v2)* – [GLUE benchmark](https://huggingface.co/datasets/glue/viewer/sst2/train) with 67k English movie-review sentences labeled positive/negative.
-  - *Yelp Review Polarity* (optional scale-up) – [Hugging Face](https://huggingface.co/datasets/yelp_polarity) release with 560k English business reviews (binary sentiment).
+  - *SST-2 (Stanford Sentiment Treebank v2)* – [GLUE benchmark](https://huggingface.co/datasets/glue/viewer/sst2/train) containing ~67k English movie-review sentences labeled as positive or negative.
+  - *Yelp Review Polarity (subset)* – We extract a 67k subset from the [Hugging Face](https://huggingface.co/datasets/yelp_polarity) release after filtering out all 3-star reviews. Labels are remapped such that 4–5 stars → positive and 1–2 stars → negative.
+
+- **Auxiliary dataset(s)**:
+  - *Amazon Polarity (subset)* – From the MTEB Amazon Polarity corpus[MTEB](https://huggingface.co/datasets/mteb/amazon_polarity).  
+    We construct a balanced ~22k subset by filtering out 2–3 star reviews and mapping 1-star → negative, 4–5 stars → positive. Domain tag: **“online shopping”**.
+
+  - *Unified Multi-Domain Review Dataset (67k)* – A composite dataset built by sampling one-third from each source:
+      - SST-2 (domain: **“movies”**),
+      - Yelp Review Polarity (domain: **“local business”**),
+      - Amazon Polarity subset (domain: **“online shopping”**).  
+    This dataset enables domain-aware evaluation, supporting both binary sentiment prediction and **three-class domain classification**.
+
+  These auxiliary resources allow us to test how recurrent vs. standard Transformers generalize across review types and to explore broader **review monitoring** applications.
+
+
+
 - **Preprocessing**:
-  - **Normalization**: Standardize text by lowercasing and normalizing whitespace. Truncate sequences to 256 tokens to optimize GPU memory usage.
-  - **Tokenization**: Use Hugging Face `AutoTokenizer` (initialized from the baseline checkpoint) or the `tokenizers` library/SentencePiece to map text to token IDs.
-  - **Label Mapping (Yelp)**: If using Yelp, map 4–5 stars → positive and 1–2 stars → negative; filter out reviews >512 tokens.
+  - **Normalization**: Lowercasing, whitespace normalization, HTML/URL removal, and truncation to 256 tokens to maintain consistent GPU memory usage.
+  - **Tokenization**: Apply Hugging Face `AutoTokenizer` (initialized from the baseline model checkpoint) or a SentencePiece-based tokenizer to convert text into token IDs.
+  - **Yelp Filter & Label Mapping**: Remove 3-star reviews entirely; convert 1–2 stars to negative and 4–5 stars to positive.
+
 - **Train/val/test split**:
-  - SST-2: follow GLUE splits (≈67k train, 872 dev, 1,821 test) and carve out 5% of the train set as an internal validation set for hyperparameters.
-  - Yelp: use official 560k train / 38k test split and reserve 10k samples from the train portion as validation when needed.
+  - **SST-2**: Follow GLUE splits (~67k train, 872 dev, 1,821 test) and create an additional 5% internal validation split from the train portion for hyperparameter tuning.
+  - **Yelp subset (67k)**: After filtering and subsampling to 67k reviews, perform an **80/10/10** split into train/validation/test to mirror the SST-2 scale.
+
 
 ---
 
@@ -191,8 +217,8 @@ where each component corresponds to:
   
 - **Baseline metrics**: What metric(s) will you report (accuracy, F1, BLEU/ROUGE, perplexity, etc.)?
   - **Primary**: Accuracy, F1-score
-  - **Secondary**: Precision, Recall, Matthews Correlation Coefficient (MCC)
-  - **Efficiency**: Inference time (ms/sample), Model size (MB), FLOPs per forward pass
+  - **Secondary**: Precision, Recall
+  - **Efficiency**: Inference time (ms/sample), Model size (MB)
   - **Training**: Loss curves, convergence speed, early stopping behavior
 
 ---
@@ -222,6 +248,40 @@ where each component corresponds to:
    - Analyze parameter efficiency: accuracy per million parameters
    - Measure inference latency differences at similar computational budgets
 
+### Experiments
+
+We conduct a series of controlled experiments to evaluate the parameter efficiency and robustness of recurrent Transformers compared to standard Transformer baselines.
+
+1. **Data Size Sensitivity (50% and 10% SST-2 subsamples)**  
+   To examine how model architectures behave under limited data, we create two random SST-2 subsamples containing **50%** and **10%** of the original training set.  
+   This experiment isolates the effect of dataset scale on:
+   - convergence stability,  
+   - sample efficiency,  
+   - and whether the recurrent Transformer maintains accuracy under scarce supervision. 
+
+2. **Short vs. Long Text Sensitivity (SST-2 length-based subsets)**  
+   To examine how parameter sharing interacts with input length, we construct two subsets of SST-2 based on tokenized sequence length:  
+   - **Short-text subset** (lowest 30%)  
+   - **Long-text subset** (highest 30%)  
+   We train baseline and recurrent models separately on each subset and analyze differences in convergence behavior, accuracy, and inference speed.  
+   This allows us to assess whether recurrent refinement offers advantages for longer sequences under fixed model capacity.
+
+3. **Cross-Domain Robustness (Yelp Review Polarity subset)**  
+   To evaluate generalization outside the movie-review domain, we train both architectures on a 67k Yelp subset (after filtering and balancing).  
+   By comparing performance across SST-2 → Yelp, we analyze domain shift effects and determine whether recurrent Transformers retain competitive accuracy under distributional changes.
+
+4. **Same-Parameter Comparison (Recurrent vs. Standard with matched parameter budget)**  
+   Beyond the default architecture comparison, we construct a standard Transformer whose parameter count is matched to the recurrent model.  
+   This experiment isolates the architectural effect by ensuring both models operate under identical parameter budgets, enabling a clean evaluation of parameter efficiency.
+
+5. **Extension: Three-Class Domain Classification (Unified 67k review dataset)**  
+   Finally, we use our unified multi-domain review dataset (movies, local business, online shopping) to test the models on a **three-class domain classification** task.  
+   This serves as an auxiliary application demonstrating how far parameter-efficient recurrent Transformers can generalize beyond binary sentiment classification.  
+   It also provides insight into the practicality of such architectures for broader **review monitoring** scenarios.
+
+Together, these experiments provide a comprehensive evaluation across task difficulty, text length, domain shift, and auxiliary classification settings, allowing us to characterize the conditions under which recurrent Transformers deliver meaningful parameter savings.
+
+
 ---
 
 ## 6. Compute & resources
@@ -231,7 +291,7 @@ where each component corresponds to:
   - Model sizes: 3-10M parameters
   - Batch size: 16-32 samples
   - Training time: ~30 minutes per model on GPU
-- **Other resources**: NVIDIA GPU 1 RTX 5090
+- **Other resources**: NVIDIA GPU 1 RTX 5090; Colab
 
 ---
 
@@ -261,6 +321,6 @@ Very briefly, list what you plan to achieve by:
 
 - **End of Week 1**: Implement baseline transformer and core modules (RoPE, Flash Attention, SwiGLU, RMSNorm)
 - **End of Week 2**: Develop recurrent transformer, training pipeline with early stopping, evaluation framework
-- **End of Week 3**: Hyperparameter tuning, comparative analysis, visualization dashboard, final report
+- **End of Week 3**: comparative analysis, final report
 
 These align with the course-wide milestones in `project/README.md`.

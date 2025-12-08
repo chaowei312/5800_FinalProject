@@ -41,21 +41,69 @@ class SST2Dataset(Dataset):
         with open(data_path, 'rb') as f:
             data = pickle.load(f)
         
+        # # Handle different data formats
+        # if isinstance(data, dict):
+        #     self.texts = data.get('processed_texts', data.get('sentences', []))
+        #     self.labels = data.get('labels', [])
+        # elif isinstance(data, list) and len(data) > 0:
+        #     if isinstance(data[0], dict):
+        #         self.texts = [item['processed_text'] for item in data]
+        #         self.labels = [item['label'] for item in data]
+        #     elif isinstance(data[0], tuple):
+        #         self.texts = [item[0] for item in data]
+        #         self.labels = [item[1] for item in data]
+        #     else:
+        #         raise ValueError("Unsupported data format")
+        # else:
+        #     raise ValueError("Unsupported data format")
         # Handle different data formats
         if isinstance(data, dict):
-            self.texts = data.get('texts', data.get('sentences', []))
-            self.labels = data.get('labels', [])
+
+            # 优先 processed_texts
+            if "processed_texts" in data:
+                self.texts = data["processed_texts"]
+
+            # fallback to texts
+            elif "texts" in data:
+                self.texts = data["texts"]
+
+            # fallback to sentences (some older datasets)
+            elif "sentences" in data:
+                self.texts = data["sentences"]
+
+            else:
+                raise ValueError("No valid text field found in data.")
+
+            # labels
+            self.labels = data.get("labels", [])
+
+
         elif isinstance(data, list) and len(data) > 0:
+
+            # List of dicts
             if isinstance(data[0], dict):
-                self.texts = [item['text'] for item in data]
-                self.labels = [item['label'] for item in data]
+
+                # 优先 processed_text（如果单条 dict 有这个字段）
+                self.texts = [
+                    item.get("processed_text",
+                            item.get("text",
+                                    item.get("sentence")))
+                    for item in data
+                ]
+
+                self.labels = [item["label"] for item in data]
+
+            # List of tuples: (text, label)
             elif isinstance(data[0], tuple):
                 self.texts = [item[0] for item in data]
                 self.labels = [item[1] for item in data]
+
             else:
-                raise ValueError("Unsupported data format")
+                raise ValueError("Unsupported data format in list.")
+
         else:
             raise ValueError("Unsupported data format")
+
         
         # Ensure labels are integers
         self.labels = [int(label) for label in self.labels]
@@ -222,7 +270,7 @@ def prepare_yelp_data(
     )
     
     val_loader = create_data_loader(
-        os.path.join(data_dir, 'yelp_internal_val.pkl'),
+        os.path.join(data_dir, 'yelp_val.pkl'),
         tokenizer,
         batch_size=batch_size,
         max_length=max_length,
@@ -230,7 +278,7 @@ def prepare_yelp_data(
     )
     
     test_loader = create_data_loader(
-        os.path.join(data_dir, 'yelp_val.pkl'),
+        os.path.join(data_dir, 'yelp_test.pkl'),
         tokenizer,
         batch_size=batch_size,
         max_length=max_length,
