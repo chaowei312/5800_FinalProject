@@ -270,7 +270,7 @@ def prepare_sst2_data(
     )
     
     val_loader = create_data_loader(
-        os.path.join(data_dir, 'sst2_internal_val.pkl'),
+        os.path.join(data_dir, 'sst2_val.pkl'),
         tokenizer,
         batch_size=batch_size,
         max_length=max_length,
@@ -278,7 +278,7 @@ def prepare_sst2_data(
     )
     
     test_loader = create_data_loader(
-        os.path.join(data_dir, 'sst2_val.pkl'),
+        os.path.join(data_dir, 'sst2_test.pkl'),
         tokenizer,
         batch_size=batch_size,
         max_length=max_length,
