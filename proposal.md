@@ -17,7 +17,11 @@
 ## 2. Problem statement & motivation
 
 - **Task**: What are you trying to do? (e.g., sentiment classification, QA, code generation, tool-using agent)
-  - Sentiment classification using a recurrent Transformer architecture to investigate parameter efficiency, with an additional review-type classification task included to test generalization.
+  We aim to implement and evaluate a Recurrent Transformer architecture for parameter-efficient text classification.
+
+  Primary Task: Binary Sentiment Classification (positive/negative).
+
+  Generalization Task: Domain Classification (identifying the source of the review: movies, business, or shopping) to test the architecture's capacity to encode semantic topic information beyond sentiment.
 
 ### Mathematical Formulations
 
@@ -53,18 +57,25 @@ $$\mathbf{Q}_i = \mathbf{x}\mathbf{W}^Q_i, \quad \mathbf{K}_i = \mathbf{x}\mathb
 
 **Feed-Forward Network (with optional SwiGLU)**
 
+
 $$
 \mathrm{FFN}(\mathbf{x}) =
 \begin{cases}
-\mathrm{FFN}_{\text{SwiGLU}}(\mathbf{x}) & \text{if } \text{use\_swiglu} = 1, \\
-\mathbf{W}_2 \, \mathrm{GELU}(\mathbf{x}\mathbf{W}_1 + \mathbf{b}_1) + \mathbf{b}_2 & \text{if } \text{use\_swiglu} = 0.
+\mathrm{FFN}_{\mathrm{SwiGLU}}(\mathbf{x}) & \text{if } \mathrm{use\_swiglu}=1, \\[6pt]
+\mathbf{W}_2\, \mathrm{GELU}(\mathbf{x}\mathbf{W}_1 + \mathbf{b}_1) + \mathbf{b}_2 
+& \text{if } \mathrm{use\_swiglu}=0.
 \end{cases}
 $$
 
 $$
-\mathrm{FFN}_{\text{SwiGLU}}(\mathbf{x})
-= \mathbf{W}_2 \big( \big( \mathbf{x}\mathbf{W}_1^{(1)} + \mathbf{b}_1^{(1)} \big)
-\odot \mathrm{SiLU}(\mathbf{x}\mathbf{W}_1^{(2)} + \mathbf{b}_1^{(2)}) \big) + \mathbf{b}_2.
+\mathrm{FFN}_{\mathrm{SwiGLU}}(\mathbf{x})
+= 
+\mathbf{W}_2 \Big[
+(\mathbf{x}\mathbf{W}_1^{(1)} + \mathbf{b}_1^{(1)})
+\odot 
+\mathrm{SiLU}(\mathbf{x}\mathbf{W}_1^{(2)} + \mathbf{b}_1^{(2)})
+\Big]
++ \mathbf{b}_2.
 $$
 
 
