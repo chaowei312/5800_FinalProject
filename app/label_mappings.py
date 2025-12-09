@@ -11,7 +11,7 @@ SENTIMENT_LABELS = {
 
 # Multi-domain classification (movie reviews, shopping, business)
 DOMAIN_LABELS = {
-    0: "movie_review",
+    0: "movies",
     1: "online_shopping",
     2: "local_business_review"
 }
