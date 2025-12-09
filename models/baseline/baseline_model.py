@@ -50,7 +50,7 @@ class BaselineConfig:
 class TransformerBlock(nn.Module):
     """Single transformer block with optional enhancements."""
     
-    def __init__(self, config: BaselineConfig):
+    def __init__(self, config: BaselineConfig, rope: nn.Module = None):
         super().__init__()
         
         # Multi-head attention
@@ -59,7 +59,8 @@ class TransformerBlock(nn.Module):
                 embed_dim=config.hidden_size,
                 num_heads=config.num_attention_heads,
                 dropout=config.attention_probs_dropout_prob,
-                use_flash=True
+                use_flash=True,
+                rope=rope  # Pass RoPE to attention
             )
         else:
             self.attention = nn.MultiheadAttention(
@@ -68,6 +69,7 @@ class TransformerBlock(nn.Module):
                 dropout=config.attention_probs_dropout_prob,
                 batch_first=True
             )
+            self._rope = rope  # Store for manual application if needed
         
         # Feed-forward network
         if config.use_swiglu:
@@ -151,11 +153,13 @@ class BaselineModel(nn.Module):
         
         # Position embeddings
         if config.use_rope:
-            self.position_embeddings = RotaryPositionalEmbedding(
+            self.rope = RotaryPositionalEmbedding(
                 dim=config.hidden_size // config.num_attention_heads,
                 max_seq_len=config.max_position_embeddings
             )
+            self.position_embeddings = None  # Not used with RoPE
         else:
+            self.rope = None
             self.position_embeddings = nn.Embedding(
                 config.max_position_embeddings,
                 config.hidden_size
@@ -175,9 +179,9 @@ class BaselineModel(nn.Module):
         
         self.embeddings_dropout = nn.Dropout(config.hidden_dropout_prob)
         
-        # Transformer blocks
+        # Transformer blocks (pass RoPE to each block)
         self.layers = nn.ModuleList([
-            TransformerBlock(config)
+            TransformerBlock(config, rope=self.rope)
             for _ in range(config.num_hidden_layers)
         ])
         
@@ -225,14 +229,14 @@ class BaselineModel(nn.Module):
             token_type_ids = torch.zeros_like(input_ids)
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
         
-        # Position embeddings
-        if position_ids is None:
-            position_ids = torch.arange(seq_length, device=input_ids.device).unsqueeze(0)
-        
+        # Position embeddings (only for non-RoPE)
         if not self.config.use_rope:
+            if position_ids is None:
+                position_ids = torch.arange(seq_length, device=input_ids.device).unsqueeze(0)
             position_embeddings = self.position_embeddings(position_ids)
             embeddings = inputs_embeds + token_type_embeddings + position_embeddings
         else:
+            # RoPE is applied in attention layers, not here
             embeddings = inputs_embeds + token_type_embeddings
         
         # Apply normalization and dropout

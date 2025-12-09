@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiGLU Activation Explorer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SwiGLU Activation Explorer</h1>
+            <p class="subtitle">Interactive visualization of Swish-Gated Linear Unit parameters</p>
+        </header>
+
+        <div class="formula-section">
+            <div class="formula-card">
+                <h3>SwiGLU Formula</h3>
+                <div class="formula">
+                    <span class="highlight">SwiGLU(x)</span> = <span class="swish">Swish(W₁x)</span> ⊙ <span class="gate">W₂x</span>
+                </div>
+                <div class="formula sub-formula">
+                    <span class="highlight">Swish(x)</span> = x · σ(<span class="beta">β</span> · x)
+                </div>
+                <p class="description">Where σ is sigmoid, β is the Swish parameter, and ⊙ is element-wise multiplication</p>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left Panel: Controls -->
+            <div class="controls-panel">
+                <h2>Parameters</h2>
+                
+                <div class="control-group">
+                    <label>
+                        <span class="label-text">β (Swish Parameter)</span>
+                        <span class="value-display" id="beta-value">1.00</span>
+                    </label>
+                    <input type="range" id="beta-slider" min="0.1" max="3" step="0.05" value="1">
+                    <p class="hint">Controls the sharpness of the Swish curve. β=1 is standard SiLU.</p>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <span class="label-text">W₁ Weight (Gate Path)</span>
+                        <span class="value-display" id="w1-value">1.00</span>
+                    </label>
+                    <input type="range" id="w1-slider" min="-2" max="2" step="0.1" value="1">
+                    <p class="hint">Scales the gate activation path</p>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <span class="label-text">W₂ Weight (Linear Path)</span>
+                        <span class="value-display" id="w2-value">1.00</span>
+                    </label>
+                    <input type="range" id="w2-slider" min="-2" max="2" step="0.1" value="1">
+                    <p class="hint">Scales the linear projection path</p>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <span class="label-text">b₁ Bias (Gate)</span>
+                        <span class="value-display" id="b1-value">0.00</span>
+                    </label>
+                    <input type="range" id="b1-slider" min="-3" max="3" step="0.1" value="0">
+                    <p class="hint">Bias for gate path</p>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <span class="label-text">b₂ Bias (Linear)</span>
+                        <span class="value-display" id="b2-value">0.00</span>
+                    </label>
+                    <input type="range" id="b2-slider" min="-3" max="3" step="0.1" value="0">
+                    <p class="hint">Bias for linear path</p>
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="show-components" checked>
+                        <span>Show Component Curves</span>
+                    </label>
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="show-comparison">
+                        <span>Compare with ReLU/GELU</span>
+                    </label>
+                </div>
+
+                <button class="reset-btn" id="reset-btn">Reset to Defaults</button>
+            </div>
+
+            <!-- Right Panel: Charts -->
+            <div class="charts-panel">
+                <div class="chart-container">
+                    <h3>SwiGLU Activation</h3>
+                    <canvas id="swiglu-chart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Swish Function Detail</h3>
+                    <canvas id="swish-chart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Gradient Analysis</h3>
+                    <canvas id="gradient-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-card">
+                <h3>Why SwiGLU?</h3>
+                <ul>
+                    <li><strong>Smoother gradients:</strong> Unlike ReLU, SwiGLU has non-zero gradients for negative inputs</li>
+                    <li><strong>Gating mechanism:</strong> The multiplicative gating allows the network to learn which features to pass</li>
+                    <li><strong>Better performance:</strong> Used in LLaMA, PaLM, and other state-of-the-art transformers</li>
+                    <li><strong>Self-gating:</strong> The Swish component acts as a soft gate controlled by the input itself</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>Parameter Effects</h3>
+                <ul>
+                    <li><strong>β → 0:</strong> Swish becomes linear (x/2)</li>
+                    <li><strong>β → ∞:</strong> Swish approaches ReLU</li>
+                    <li><strong>β = 1:</strong> Standard SiLU (used in most implementations)</li>
+                    <li><strong>W₁, W₂:</strong> Control the scale and direction of each path</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>Interactive SwiGLU Demo | Based on <a href="https://arxiv.org/abs/2002.05202" target="_blank">GLU Variants Improve Transformer (Shazeer, 2020)</a></p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

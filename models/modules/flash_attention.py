@@ -158,7 +158,7 @@ class FlashAttention(nn.Module):
 
 class MultiHeadFlashAttention(nn.Module):
     """
-    Multi-head attention with flash attention support.
+    Multi-head attention with flash attention support and optional RoPE.
     """
     
     def __init__(
@@ -167,12 +167,14 @@ class MultiHeadFlashAttention(nn.Module):
         num_heads: int,
         dropout: float = 0.1,
         bias: bool = True,
-        use_flash: bool = True
+        use_flash: bool = True,
+        rope: Optional[nn.Module] = None
     ):
         super().__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.head_dim = embed_dim // num_heads
+        self.rope = rope  # Rotary Position Embedding
         
         assert self.head_dim * num_heads == embed_dim, \
             "embed_dim must be divisible by num_heads"
@@ -212,10 +214,25 @@ class MultiHeadFlashAttention(nn.Module):
         Returns:
             Output tensor and optional attention weights
         """
+        batch_size, seq_len, _ = x.shape
+        
         # Project to query, key, value
         query = self.q_proj(x)
         key = self.k_proj(x)
         value = self.v_proj(x)
+        
+        # Apply RoPE to query and key if available
+        if self.rope is not None:
+            # Reshape for RoPE: [batch, seq, num_heads, head_dim]
+            query = query.view(batch_size, seq_len, self.num_heads, self.head_dim)
+            key = key.view(batch_size, seq_len, self.num_heads, self.head_dim)
+            
+            # Apply rotary position embeddings
+            query, key = self.rope(query, key)
+            
+            # Reshape back: [batch, seq, embed_dim]
+            query = query.view(batch_size, seq_len, self.embed_dim)
+            key = key.view(batch_size, seq_len, self.embed_dim)
         
         # Apply attention
         attn_output, attn_weights = self.attention(

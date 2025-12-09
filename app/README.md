@@ -39,3 +39,32 @@ python app/web_app.py
 - **前端**: HTML5 + CSS3 + JavaScript
 - **模型**: Baseline & Recurrent Transformers
 
+## 🎨 SwiGLU Interactive Demo
+
+Interactive visualization of Swish-Gated Linear Unit activation function.
+
+### 启动方法
+
+```bash
+cd app/SwiGLU_demo
+python -m http.server 8080
+```
+
+然后在浏览器打开: http://localhost:8080
+
+### 功能特点
+
+- **参数调节**: 拖动滑块实时调整 β、W₁、W₂、b₁、b₂ 参数
+- **曲线可视化**: 查看 SwiGLU、Swish 和梯度曲线变化
+- **对比分析**: 与 ReLU、GELU 激活函数对比
+- **组件分解**: 显示 Swish 门控和线性路径的分量
+
+### 参数说明
+
+| 参数 | 描述 |
+|------|------|
+| β (Beta) | 控制 Swish 曲线的锐度 (β→0 变线性, β→∞ 接近ReLU) |
+| W₁ Weight | 门控激活路径的缩放 |
+| W₂ Weight | 线性投影路径的缩放 |
+| b₁, b₂ Bias | 各路径的偏置项 |
+

@@ -66,7 +66,7 @@ class RecurrentConfig:
 class RecurrentTransformerBlock(nn.Module):
     """Pure transformer block for recurrent processing - no extra state."""
     
-    def __init__(self, config: RecurrentConfig, layer_idx: int):
+    def __init__(self, config: RecurrentConfig, layer_idx: int, rope: nn.Module = None):
         super().__init__()
         self.config = config
         self.layer_idx = layer_idx
@@ -77,7 +77,8 @@ class RecurrentTransformerBlock(nn.Module):
                 embed_dim=config.hidden_size,
                 num_heads=config.num_attention_heads,
                 dropout=config.attention_probs_dropout_prob,
-                use_flash=True
+                use_flash=True,
+                rope=rope  # Pass RoPE to attention
             )
         else:
             self.attention = nn.MultiheadAttention(
@@ -86,6 +87,7 @@ class RecurrentTransformerBlock(nn.Module):
                 dropout=config.attention_probs_dropout_prob,
                 batch_first=True
             )
+            self._rope = rope  # Store for manual application if needed
         
         # Feed-forward network
         if config.use_swiglu:
@@ -178,11 +180,13 @@ class RecurrentModel(nn.Module):
         
         # Position embeddings
         if config.use_rope:
-            self.position_embeddings = RotaryPositionalEmbedding(
+            self.rope = RotaryPositionalEmbedding(
                 dim=config.hidden_size // config.num_attention_heads,
                 max_seq_len=config.max_position_embeddings
             )
+            self.position_embeddings = None  # Not used with RoPE
         else:
+            self.rope = None
             self.position_embeddings = nn.Embedding(
                 config.max_position_embeddings,
                 config.hidden_size
@@ -202,9 +206,9 @@ class RecurrentModel(nn.Module):
         
         self.embeddings_dropout = nn.Dropout(config.hidden_dropout_prob)
         
-        # Transformer blocks (will be reused recurrent_depth times)
+        # Transformer blocks (pass RoPE to each block)
         self.layers = nn.ModuleList([
-            RecurrentTransformerBlock(config, layer_idx=i)
+            RecurrentTransformerBlock(config, layer_idx=i, rope=self.rope)
             for i in range(config.num_hidden_layers)
         ])
         
@@ -249,14 +253,14 @@ class RecurrentModel(nn.Module):
             token_type_ids = torch.zeros_like(input_ids)
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
         
-        # Position embeddings
-        if position_ids is None:
-            position_ids = torch.arange(seq_length, device=input_ids.device).unsqueeze(0)
-        
+        # Position embeddings (only for non-RoPE)
         if not self.config.use_rope:
+            if position_ids is None:
+                position_ids = torch.arange(seq_length, device=input_ids.device).unsqueeze(0)
             position_embeddings = self.position_embeddings(position_ids)
             embeddings = inputs_embeds + token_type_embeddings + position_embeddings
         else:
+            # RoPE is applied in attention layers, not here
             embeddings = inputs_embeds + token_type_embeddings
         
         # Apply normalization and dropout
