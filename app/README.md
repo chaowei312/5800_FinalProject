@@ -1,41 +1,38 @@
-【文本分类Web应用】
+# Text Classification Web Application
 
-## 🌐 启动方法
+## How to Launch
 
 ```bash
-python app/web_app.py
-```
+python web_app.py
+````
 
-然后在浏览器打开: http://localhost:5000
+Then open the browser at: [http://localhost:5000](http://localhost:5000)
 
-## ✨ 功能特点
+## Features
 
-- 🔄 **模型切换**: 一键切换Standard和Recurrent Transformer
-- 💭 **情感分类**: 正面/负面
-- 🏷️ **领域分类**: 电影评论/在线购物/本地商家
-- 📊 **可视化**: 彩色概率条形图
-- 📱 **响应式**: 支持手机和平板
+* Model switching between Standard and Recurrent Transformers
+* Sentiment classification (positive / negative)
+* Domain classification (movie review / online shopping / local business)
+* Probability visualization with color-coded bar charts
+* Responsive UI for desktop and mobile devices
 
-## 🎯 快速使用
+## Quick Start
 
-1. 点击选择模型（Standard 或 Recurrent）
-2. 输入或粘贴文本
-3. 点击"Classify Text"按钮
-4. 查看分类结果和概率分布
+1. Select a model (Standard or Recurrent)
+2. Enter or paste text into the input box
+3. Click the "Classify Text" button
+4. View the predicted labels and probability distributions
 
-## ⌨️ 键盘快捷键
+## Keyboard Shortcuts
 
-- `Ctrl+Enter` - 执行分类
-- `Ctrl+K` - 聚焦输入框
-- `Escape` - 清除内容
+* `Ctrl + Enter` — Run classification
+* `Ctrl + K` — Focus the text input field
+* `Escape` — Clear the input
 
-## 📚 完整文档
 
-详细使用指南请查看: [WEB_APP_GUIDE.md](../WEB_APP_GUIDE.md)
+## Technical Stack
 
-## 🔧 技术架构
-
-- **后端**: Flask + PyTorch
-- **前端**: HTML5 + CSS3 + JavaScript
-- **模型**: Baseline & Recurrent Transformers
+* Backend: Flask + PyTorch
+* Frontend: HTML5, CSS3, JavaScript
+* Models: Baseline Transformer and Recurrent Transformer
 
