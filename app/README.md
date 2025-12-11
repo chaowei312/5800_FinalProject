@@ -36,32 +36,34 @@ Then open the browser at: [http://localhost:5000](http://localhost:5000)
 * Frontend: HTML5, CSS3, JavaScript
 * Models: Baseline Transformer and Recurrent Transformer
 
+Here is the English translation formatted in a Markdown code block for you to copy:
+
 ## 🎨 SwiGLU Interactive Demo
 
-Interactive visualization of Swish-Gated Linear Unit activation function.
+Interactive visualization of the Swish-Gated Linear Unit activation function.
 
-### 启动方法
+### Launch Instructions
 
 ```bash
 cd app/SwiGLU_demo
 python -m http.server 8080
-```
+````
 
-然后在浏览器打开: http://localhost:8080
+Then open http://localhost:8080 in your browser.
 
-### 功能特点
+### Features
 
-- **参数调节**: 拖动滑块实时调整 β、W₁、W₂、b₁、b₂ 参数
-- **曲线可视化**: 查看 SwiGLU、Swish 和梯度曲线变化
-- **对比分析**: 与 ReLU、GELU 激活函数对比
-- **组件分解**: 显示 Swish 门控和线性路径的分量
+  - **Parameter Tuning**: Real-time adjustment of parameters β, W₁, W₂, b₁, and b₂ using sliders.
+  - **Curve Visualization**: View changes in SwiGLU, Swish, and gradient curves.
+  - **Comparative Analysis**: Compare against ReLU and GELU activation functions.
+  - **Component Decomposition**: Display individual components of the Swish gating and linear paths.
 
-### 参数说明
+### Parameter Descriptions
 
-| 参数 | 描述 |
-|------|------|
-| β (Beta) | 控制 Swish 曲线的锐度 (β→0 变线性, β→∞ 接近ReLU) |
-| W₁ Weight | 门控激活路径的缩放 |
-| W₂ Weight | 线性投影路径的缩放 |
-| b₁, b₂ Bias | 各路径的偏置项 |
+| Parameter | Description |
+|-----------|-------------|
+| β (Beta) | Controls the sharpness of the Swish curve (β→0 becomes linear, β→∞ approaches ReLU). |
+| W₁ Weight | Scaling for the gated activation path. |
+| W₂ Weight | Scaling for the linear projection path. |
+| b₁, b₂ Bias | Bias terms for each path. |
 

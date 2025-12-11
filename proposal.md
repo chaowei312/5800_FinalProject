@@ -4,7 +4,7 @@
 
 ## 1. Team
 
-- **Project title**: Recurrent vs Standard Transformers: Parameter-Efficient Modeling for Sentiment and Review Classification
+- **Project title**: Recurrent vs. Standard Transformers: Parameter-Efficient Classification Across Sentiment and Domains
 - **Team members**: 
   - Chenxi Guo & cg1372
   - Jiayi Peng & jp2132
@@ -36,10 +36,12 @@ $$\mathbf{h}_0 = \text{LayerNorm}(\mathbf{W}_e[\mathbf{x}] + \mathbf{P}(\text{po
 
 **Transformer Layer** (pre-norm residual):
 
-$$\begin{align}
+$$
+\begin{align}
 \mathbf{h}'_l &= \mathbf{h}_{l-1} + \text{Dropout}(\text{MultiHeadAttn}(\text{Norm}_1(\mathbf{h}_{l-1}))) \\
 \mathbf{h}_l &= \mathbf{h}'_l + \text{Dropout}(\text{FFN}(\text{Norm}_2(\mathbf{h}'_l)))
-\end{align}$$
+\end{align}
+$$
 
 where $\text{Norm} \in \{\text{LayerNorm}, \text{RMSNorm}\}$ based on configuration.
 

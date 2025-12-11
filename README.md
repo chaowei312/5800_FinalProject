@@ -1,281 +1,175 @@
-# Final Project
+# Recurrent vs. Standard Transformers: Parameter-Efficient Classification Across Sentiment and Domains
 
-*Instructor: Chris Larson | Georgetown University | ANLY-5800 | Fall '25*
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
+
+> **ANLY-5800 Final Project** | Georgetown University | Fall 2025  
+> **Team**: Chenxi Guo, Jiayi Peng, Chaowei Wang, Junchen Han
 
 ---
 
 ## Overview
 
-The final project is a 3‑week, group-based assignment in which you will build, finetune, or analyze an NLP system involving transformers, finetuning, evaluation, scaling, agents, etc.
-
-Projects may follow one of several structured tracks or a student-defined variant that fits within this framework. Across all tracks, you are expected to:
-
-- Implement or adapt a non-trivial model or system
-- Run meaningful experiments (with baselines and at least one ablation/variant)
-- Use sound evaluation with appropriate metrics
-- Communicate your work clearly in code, a written report, and a presentation
+This project compares **Recurrent Transformer** and **Standard Transformer** architectures for parameter-efficient text classification. Our recurrent model achieves comparable performance with **64% fewer parameters**.
 
 ---
 
-## Project guidelines
+## Project Structure
 
-### Group size
-
-- Recommended: 2–4 students
-- Solo projects only by exception (must be explicitly approved and appropriately scoped)
-
-### Deliverables
-
-- GitHub repository
-  - Clean, runnable code
-  - `README.md` with setup, how to run experiments, and how to reproduce main results
-- Project report (3-5 pages, PDF)
-  - IMRaD-style: Introduction, Related Work, Methods, Experiments, Results/Discussion, Limitations/Future Work (markdown formatted!).
-- Final presentation and demo
-  - 15 minutes talk + 5 minutes Q&A
-  - Live demo strongly encouraged
-
----
-
-## Three‑week timeline & milestones
-
-This timeline is relative (Week 1, 2, 3). Exact calendar dates will be specified on the syllabus.
-
-### Week 1 – Problem, data, and baseline
-
-- Checkpoint 1 (mid‑Week 1): One‑pager proposal
-  - Use `project/proposal-template.md` as a guide.
-  - Includes:
-    - Problem statement and motivation
-    - Track choice and scope
-    - Dataset(s): source, size, preprocessing plan
-    - Baseline idea (simplest thing that could work)
-
-- Checkpoint 2 (end of Week 1): Baseline & plan
-  - Data preprocessing scripts in the repo
-  - A running baseline
-  - Initial baseline metrics
-  - A short progress note (1–2 pages in the repo) describing:
-    - What you built
-    - Baseline performance
-    - Two concrete improvements you plan to implement in Weeks 2–3
-
-### Week 2 – Core system and main experiments
-
-- Implement the core model or system for your chosen track (see Tracks below).
-- Run at least one full experimental comparison (baseline vs. improved system).
-- By the end of Week 2:
-  - End-to-end pipeline running on your task
-  - At least one complete set of results with metrics and plots
-  - Draft experimental section for your report (including setup and preliminary analysis)
-
-### Week 3 – Refinement, ablations, and communication
-
-- Complete remaining ablations/variants.
-- Strengthen evaluation:
-  - Quantitative: metrics, curves, tables
-  - Qualitative: representative successes and failures, error analysis
-- Finalize:
-  - Repository structure, documentation, scripts
-  - Final report
-  - Demo
-
-Final report and presentation are due at the end of Week 3; exact date/time will be posted on Canvas.
+```
+5800_FinalProject/
+├── app/                      # Web app & CLI inference
+│   ├── web_app.py           # Flask web interface
+│   ├── cli.py               # Command-line interface
+│   ├── inference.py         # Inference classes
+│   └── SwiGLU_demo/         # Interactive activation demo
+├── models/                   # Model implementations
+│   ├── baseline/            # Standard Transformer
+│   ├── recurrent/           # Recurrent Transformer
+│   └── modules/             # Custom components (Flash Attention, SwiGLU, RoPE, RMSNorm)
+├── training/                 # Training scripts
+│   ├── train_baseline.py
+│   └── train_recurrent.py
+├── evaluation/               # Evaluation scripts
+├── data/                     # Datasets (SST-2, Yelp, Multi-domain)
+├── notebooks/                # Analysis notebooks
+├── configs/                  # Model configurations
+└── requirements.txt
+```
 
 ---
 
-## Tracks (project options)
+## Installation
 
-You may choose any of the following tracks or propose your own (Track E). All tracks should include:
+```bash
+# Clone repository
+git clone https://github.com/chaowei312/5800_FinalProject.git
+cd 5800_FinalProject
 
-- A clearly defined NLP task and dataset
-- At least one baseline and one improved system
-- At least one ablation or variant (e.g., architecture change, data size, hyperparameter)
+# Install dependencies
+pip install -r requirements.txt
 
-### Track A – Tiny Transformer language model (from scratch)
-
-Objective: Build and train a small transformer-based language model from scratch to understand the mechanics of modern LMs.
-
-Core requirements
-
-- Implement (or heavily adapt, with understanding) a minimal Transformer:
-  - Tokenization (character‑level or BPE)
-  - Positional encodings
-  - Multi-head self-attention
-  - Feed-forward blocks
-  - Layer normalization
-  - Causal masking for autoregressive modeling
-- Train on a small corpus of your choice (e.g., domain text, lyrics, code, class notes).
-- Evaluate using:
-  - Perplexity or next-token prediction accuracy
-  - Qualitative generations
-
-Experiments
-
-- At least two variants, e.g.:
-  - Different model sizes (layers/hidden dim)
-  - Different context lengths
-  - Different dataset sizes (e.g., 10%, 50%, 100%)
-
-Suggested resources
-
-- [`nanoGPT`](https://github.com/karpathy/nanoGPT) for reference (do not just clone + run; you must understand and adapt)
-- [Llama GitHub repository](https://github.com/meta-llama)
+# Verify installation
+python app/test_installation.py
+```
 
 ---
 
-### Track B – LoRA finetuning for a downstream task
+## Models
 
-Objective: Efficiently adapt a pretrained LLM to a specific NLP task using Low‑Rank Adaptation (LoRA) and analyze trade‑offs.
+### Baseline Transformer
+- Architecture: 6 layers × 384 hidden dim × 6 heads
+- Parameters: ~9.8M
+- Features: Flash Attention, SwiGLU, RoPE, RMSNorm
 
-Core requirements
+### Recurrent Transformer
+- Architecture: 3 layers × 2 iterations × 256 hidden dim × 4 heads
+- Parameters: ~3.4M (64% reduction)
+- Cross-iteration residuals: $h^{(i+1)} = \text{TransformerLayers}(h^{(i)}) + 0.5 \cdot h^{(i)}$
 
-- Choose:
-  - A pretrained LLM (e.g., LLaMA variant, Mistral, etc.)
-  - A task: text classification, summarization, QA, dialogue, instruction following, etc.
-- Implement or configure LoRA:
-  - Understand where adapters are injected (e.g., attention projections, feed-forward layers)
-  - Control LoRA rank and scaling
-- Train on:
-  - A public dataset (GLUE, SST‑2, SQuAD, etc.) or
-  - A custom dataset you collect/curate
-
-Experiments
-
-- Compare:
-  - LoRA vs. a simple baseline (e.g., prompt‑only or frozen encoder + linear head)
-  - At least one LoRA hyperparameter variant (e.g., rank or learning rate)
-- Evaluate with task-appropriate metrics:
-  - Accuracy/F1 for classification
-  - BLEU/ROUGE for generation/summarization
-  - Exact match / F1 for QA
-
-Suggested resources
-
-- [LoRA paper](https://arxiv.org/abs/2106.09685)
-- PEFT / Hugging Face ecosystem for practical patterns (if used, you still need to explain the math)
+**Key Innovation**: Achieves effective depth of 6 layers by iterating through 3 layers twice, dramatically reducing parameters.
 
 ---
 
-### Track C – LLM agent with dynamic tool usage and/or code execution
+## Training
 
-Objective: Build an LLM-based agent that can decide when to call tools and/or execute code to solve complex queries.
+### Basic Training
 
-Core requirements
+```bash
+# Train baseline model
+python training/train_baseline.py \
+    --data_dir data/processed \
+    --output_dir checkpoints/baseline \
+    --config configs/bert_small_config.json \
+    --batch_size 32 \
+    --learning_rate 2e-5 \
+    --num_epochs 10
 
-- Implement an agent loop:
-  - Observe user query and current context
-  - Decide whether to:
-    - Answer directly, or
-    - Call a tool (e.g., retrieval, calculator, web API, code-exec)
-  - Incorporate tool results into subsequent reasoning
-- Support at least two tools, such as:
-  - Calculator / symbolic math
-  - Code execution (Python sandbox)
-  - Vector search over documents
-  - External API
-- Build a small evaluation suite of multi-step questions/tasks where tools are necessary.
+# Train recurrent model
+python training/train_recurrent.py \
+    --data_dir data/processed \
+    --output_dir checkpoints/recurrent \
+    --config configs/recurrent_config_template.json \
+    --recurrent_depth 2
+```
 
-Experiments
+### Key Training Options
 
-- Compare:
-  - Agent with tools vs. baseline LLM without tools
-  - Possibly different orchestration strategies (e.g., ReAct-style vs. simple tool-calling heuristics)
-- Measure:
-  - Task success rate / accuracy
-  - Latency / number of tool calls
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--batch_size` | Training batch size | 32 |
+| `--learning_rate` | Initial learning rate | 2e-5 |
+| `--num_epochs` | Maximum epochs | 10 |
+| `--early_stopping_patience` | Early stopping patience | 3 |
+| `--mixed_precision` | Use FP16 training | False |
 
-Important constraint
-
-- LLM and tool orchestration must be implemented by you, not simply delegated to a black-box managed service. You may use libraries (e.g., LangChain) as building blocks, but your solution cannot simply be a wrapper around existing tools.
-
-Suggested resources
-
-- [LangChain GitHub repository](https://github.com/langchain-ai/langchain)
-- [Llama-stack GitHub repository](https://github.com/meta-llama/llama-stack)
-- [ReAct paper](https://arxiv.org/pdf/2210.03629)
+**Training Features**: Automatic checkpointing, early stopping, learning rate scheduling, gradient clipping
 
 ---
 
-### Track D – Analysis, evaluation, or scaling study
+## Evaluation
 
-Objective: Answer a focused empirical question about language models using careful experimental design and analysis.
+```bash
+# Evaluate model
+python evaluation/eval.py \
+    --checkpoint checkpoints/baseline/best_model.pt \
+    --data_dir data/processed \
+    --split test
+```
 
-Example questions
-
-- How does performance scale with:
-  - Model size?
-  - Training data size?
-  - Context length?
-- How do different finetuning strategies compare?
-  - SFT vs. instruction tuning vs. DPO (on a small setup)
-- How robust is a model to:
-  - Prompt perturbations or adversarial prompts?
-  - Domain shift (train vs. test domain)?
-
-Core requirements
-
-- Clearly stated research question and hypotheses.
-- Implementation of training/fine-tuning or evaluation pipeline.
-- Systematic experiments with multiple settings, not just one run.
-- Plots/tables that answer your question (e.g., scaling curves, robustness curves).
+**Metrics**: Accuracy, F1 Score, Precision, Recall, Inference Time, Model Size
 
 ---
 
-### Track E – Student-defined project
+## Experiments
 
-Students may propose their own project, provided it:
+We conducted five experiments to evaluate parameter efficiency and robustness:
 
-- Involves a significant component of NLP research or application (novel model, task, dataset, or analysis).
-- Ties clearly to course content:
-  - Language models, transformers, etc.
-- Includes:
-  - Clear problem statement and motivation
-  - Methods grounded in course material
-  - At least one baseline and one improved system/analysis
-  - A realistic but ambitious 3‑week plan
+1. **Data Size Sensitivity**: Train on 10%, 50%, 100% of SST-2
+   - Recurrent model shows better sample efficiency at low data regimes
 
-Use the proposal template (`project/proposal-template.md`) and discuss with the instructor for approval.
+2. **Text Length Robustness**: Short vs long sequence performance
+   - Recurrent model excels on longer sequences
 
----
+3. **Cross-Domain Generalization**: SST-2 (movies) → Yelp (business)
+   - Recurrent model: +2.4% better transfer accuracy
 
-## Jetstream2 compute resources
+4. **Parameter-Matched Comparison**: Same parameter budget
+   - Recurrent architecture: +1.5% accuracy at matched parameters
 
-Google Colab is an excellent choice of most project work. If you need additional resources, we can grant access to free compute resources via a Jupyter Lab notebook hosted on the Jetstream2 supercomputing cluster with Nvidia A100 (40GB) GPUs.
+5. **Multi-Domain Classification**: 3-class domain identification
+   - Both models achieve >87% accuracy
 
-*See [jetstream2.md](project/jetstream2.md) for environment, connection, and storage details.*
+**Key Insight**: Recurrent transformers maintain performance with significantly fewer parameters, especially beneficial for deployment scenarios with memory constraints.
 
 ---
 
-## Evaluation criteria (updated rubric)
+## Custom Implementations
 
-| Category                          | Weight | Description                                                                 |
-|--------------------------------------|------------|---------------------------------------------------------------------------------|
-| Technical depth & correctness    | 30%        | Sound implementation; appropriate modeling choices; code runs & is reproducible |
-| Experimental design & analysis   | 25%        | Quality of baselines, metrics, ablations, and interpretation of results        |
-| Ambition & scope                 | 15%        | Project difficulty/novelty relative to group size and 3‑week timeframe         |
-| Communication (report)  | 20%        | Clarity, organization, use of figures/tables, and explanation of concepts      |
-| Code quality & documentation     | 10%        | Repo structure, README, comments, and ease of reproducing key experiments      |
+We implement 5 state-of-the-art components from scratch:
 
-Important: You will not be graded on *how good* your model is in absolute terms, but on how well you design, execute, and analyze your project within the constraints.
+1. **Recurrent Transformer**: Iterative layer processing with cross-iteration residuals
+2. **Flash Attention**: Memory-efficient O(N) attention
+3. **SwiGLU Activation**: Swish-Gated Linear Units
+4. **RoPE**: Rotary Position Embeddings
+5. **RMSNorm**: Efficient normalization
 
-**Importantly, negative results (e.g., an idea that doesn’t improve performance) are completely acceptable if the experimentation and analysis are careful and well explained**.
+See [`proposal.md`](proposal.md) for mathematical formulations and [`app/ARCHITECTURE.md`](app/ARCHITECTURE.md) for system design.
 
 ---
 
-## Checklist
+## Interactive Demo
 
-- Week 1
-  - [ ] Proposal one‑pager (problem, dataset, baseline, plan)
-  - [ ] Running baseline + initial metrics
-- Week 2
-  - [ ] Core model/system implemented
-  - [ ] At least one full experimental comparison (baseline vs improved)
-  - [ ] Draft experimental section for report
-- Week 3
-  - [ ] Ablations/variants completed
-  - [ ] Error analysis + qualitative examples
-  - [ ] Repo cleaned; README updated
-  - [ ] Final report
-  - [ ] Demo
+### SwiGLU Visualization
+
+```bash
+cd app/SwiGLU_demo
+python -m http.server 8080
+```
+
+Open: [http://localhost:8080](http://localhost:8080)
+
+Real-time visualization of Swish-Gated Linear Unit activation with adjustable parameters.
+
+
 
