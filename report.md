@@ -58,22 +58,27 @@ where $\odot$ denotes element-wise multiplication. SwiGLU's gating mechanism imp
 
 ### Rotary Positional Embeddings (RoPE)
 
-To encode positional information, we apply RoPE to query and key vectors by rotating each 2D feature pair. For position $m$ and pair index $i$, define the frequency
+To encode positional information, we apply Rotary Positional Embeddings (RoPE) to query and key vectors by rotating each 2D feature pair.  
+For position $m$ and pair index $i$, the rotation frequency is defined as
+
 $$
 \theta_i = 10000^{-2i/d}.
 $$
 
-Let $\mathbf{x}_{m,i} = \begin{bmatrix} x_{m,2i} \\ x_{m,2i+1} \end{bmatrix}$. RoPE applies a rotation:
+For each feature pair $(x_{m,2i}, x_{m,2i+1})$, RoPE applies the rotation
+
 $$
-\mathbf{x}'_{m,i} =
-\begin{bmatrix}
-\cos(m\theta_i) & -\sin(m\theta_i) \\
-\sin(m\theta_i) & \cos(m\theta_i)
-\end{bmatrix}
-\mathbf{x}_{m,i}.
+x'_{m,2i} = x_{m,2i}\cos(m\theta_i) - x_{m,2i+1}\sin(m\theta_i),
 $$
 
-This induces relative-position attention behavior, so attention scores depend primarily on the offset $(n-m)$ rather than absolute positions.
+$$
+x'_{m,2i+1} = x_{m,2i}\sin(m\theta_i) + x_{m,2i+1}\cos(m\theta_i).
+$$
+
+This formulation induces relative-position attention behavior, such that attention scores depend primarily on the offset $(n - m)$ rather than absolute positions.
+
+
+
 
 ### RMS Normalization
 We use RMSNorm for computational efficiency. Given input $\mathbf{x} \in \mathbb{R}^d$:
