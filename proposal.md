@@ -9,19 +9,21 @@
   - Chenxi Guo & cg1372
   - Jiayi Peng & jp2132
   - Chaowei Wang & cw1278
-  - Junchen Han & jh2732
+  - Juncheng Han & jh2732
 - **Preferred track**: **(D) Analysis** - Architectural comparison and efficiency study
 
 ---
 
-## 2. Problem statement & motivation
+## 2. Problem Statement & Motivation
 
-- **Task**: What are you trying to do? (e.g., sentiment classification, QA, code generation, tool-using agent)
-  We aim to implement and evaluate a Recurrent Transformer architecture for parameter-efficient text classification.
+Transformer-based encoders have become the dominant architecture for text classification tasks, but their performance gains are typically accompanied by rapidly growing parameter counts and computational costs. As model depth increases, memory footprint and inference latency become critical bottlenecks, limiting the practicality of standard Transformers in efficiency-sensitive settings.
 
-  Primary Task: Binary Sentiment Classification (positive/negative).
+This project investigates whether recurrent Transformers with shared weights can serve as a parameter-efficient alternative to standard Transformer encoders for text classification. Rather than proposing a new architecture, our goal is to systematically analyze the trade-offs between depth stacking and iterative recurrence under controlled conditions.
 
-  Generalization Task: Domain Classification (identifying the source of the review: movies, business, or shopping) to test the architecture's capacity to encode semantic topic information beyond sentiment.
+Our primary task is **binary sentiment classification**, where we compare a conventional Transformer baseline against recurrent variants with matched effective depth but substantially fewer parameters. To assess generalization beyond sentiment, we additionally consider **domain classification**, in which the model predicts the source domain of a review (movies, local business, or online shopping). This auxiliary task tests whether parameter-efficient recurrent architectures can encode higher-level semantic information beyond sentiment polarity.
+
+Through controlled architectural comparisons and robustness experiments, we aim to identify when recurrent Transformers provide meaningful efficiency gains without compromising predictive performance.
+
 
 ### Mathematical Formulations
 
@@ -283,14 +285,14 @@ We conduct a series of controlled experiments to evaluate the parameter efficien
    To evaluate generalization outside the movie-review domain, we train both architectures on a 67k Yelp subset (after filtering and balancing).  
    By comparing performance across SST-2 → Yelp, we analyze domain shift effects and determine whether recurrent Transformers retain competitive accuracy under distributional changes.
 
-4. **Same-Parameter Comparison (Recurrent vs. Standard with matched parameter budget)**  
-   Beyond the default architecture comparison, we construct a standard Transformer whose parameter count is matched to the recurrent model.  
-   This experiment isolates the architectural effect by ensuring both models operate under identical parameter budgets, enabling a clean evaluation of parameter efficiency.
-
-5. **Extension: Three-Class Domain Classification (Unified 67k review dataset)**  
+4. **Extension: Three-Class Domain Classification (Unified 67k review dataset)**  
    Finally, we use our unified multi-domain review dataset (movies, local business, online shopping) to test the models on a **three-class domain classification** task.  
    This serves as an auxiliary application demonstrating how far parameter-efficient recurrent Transformers can generalize beyond binary sentiment classification.  
    It also provides insight into the practicality of such architectures for broader **review monitoring** scenarios.
+  
+5. **Supplementary Deployment Analysis (FP16 Quantization)**  
+   As a deployment-oriented extension, we evaluate FP16 quantization to assess numerical stability and inference efficiency.  
+   This analysis focuses on memory footprint and latency, and is treated as supplementary to the main architectural comparison.
 
 Together, these experiments provide a comprehensive evaluation across task difficulty, text length, domain shift, and auxiliary classification settings, allowing us to characterize the conditions under which recurrent Transformers deliver meaningful parameter savings.
 

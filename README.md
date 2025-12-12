@@ -18,22 +18,19 @@ This project compares **Recurrent Transformer** and **Standard Transformer** arc
 
 ```
 5800_FinalProject/
-├── app/                      # Web app & CLI inference
-│   ├── web_app.py           # Flask web interface
-│   ├── cli.py               # Command-line interface
-│   ├── inference.py         # Inference classes
-│   └── SwiGLU_demo/         # Interactive activation demo
-├── models/                   # Model implementations
-│   ├── baseline/            # Standard Transformer
-│   ├── recurrent/           # Recurrent Transformer
-│   └── modules/             # Custom components (Flash Attention, SwiGLU, RoPE, RMSNorm)
-├── training/                 # Training scripts
-│   ├── train_baseline.py
-│   └── train_recurrent.py
-├── evaluation/               # Evaluation scripts
-├── data/                     # Datasets (SST-2, Yelp, Multi-domain)
-├── notebooks/                # Analysis notebooks
-├── configs/                  # Model configurations
+├── app/                  # Web app & CLI
+│   ├── web_app.py
+│   ├── cli.py
+│   └── SwiGLU_demo/
+├── models/               # Baseline, recurrent & custom modules
+│   ├── baseline/
+│   ├── recurrent/
+│   └── modules/ (Flash Attention, SwiGLU, RoPE, RMSNorm)
+├── training/             # Training pipeline and utilities
+├── evaluation/           # Evaluation and metrics
+├── data/                 # Preprocessed datasets
+├── configs/              # Model configs
+├── notebooks/            # Analysis & result notebooks
 └── requirements.txt
 ```
 
@@ -123,22 +120,30 @@ python evaluation/eval.py \
 
 ## Experiments
 
-We conducted five experiments to evaluate parameter efficiency and robustness:
 
-1. **Data Size Sensitivity**: Train on 10%, 50%, 100% of SST-2
-   - Recurrent model shows better sample efficiency at low data regimes
+We conducted five core experiments to systematically evaluate parameter efficiency and robustness of recurrent Transformers under realistic constraints:
 
-2. **Text Length Robustness**: Short vs long sequence performance
-   - Recurrent model excels on longer sequences
+1. **Data Size Sensitivity**
+   Models are trained on 10%, 50%, and 100% of the SST-2 training set.
+   The recurrent architecture demonstrates improved sample efficiency and more stable performance in low-data regimes.
 
-3. **Cross-Domain Generalization**: SST-2 (movies) → Yelp (business)
-   - Recurrent model: +2.4% better transfer accuracy
+2. **Text Length Robustness**
+   Performance is evaluated separately on short and long input sequences derived from SST-2.
+   The recurrent model consistently performs better on longer sequences, suggesting that iterative refinement effectively captures extended contextual dependencies.
 
-4. **Parameter-Matched Comparison**: Same parameter budget
-   - Recurrent architecture: +1.5% accuracy at matched parameters
+3. **Cross-Domain Generalization**
+   Models trained on SST-2 (movie reviews) are evaluated on Yelp Review Polarity (business reviews).
+   The recurrent model achieves stronger transfer performance, indicating improved robustness to domain shift.
 
-5. **Multi-Domain Classification**: 3-class domain identification
-   - Both models achieve >87% accuracy
+
+4. **Multi-Domain Classification**
+   Models are evaluated on a unified three-class review dataset (movies, local business, online shopping).
+   Both architectures achieve over 87% accuracy, demonstrating the practicality of recurrent Transformers beyond binary sentiment classification.
+
+5. **Supplementary Deployment Analysis**
+   As an auxiliary experiment, we evaluate FP16 quantization to assess deployment efficiency.
+   Results show stable accuracy under half-precision inference with significant reductions in memory footprint and inference latency.
+
 
 **Key Insight**: Recurrent transformers maintain performance with significantly fewer parameters, especially beneficial for deployment scenarios with memory constraints.
 
