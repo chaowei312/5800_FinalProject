@@ -1,5 +1,5 @@
 # Recurrent vs. Standard Transformers: Parameter and Compute-Efficient Classification Across Sentiment and Domains
-**Team members**:Chenxi Guo, Jiayi Peng, Chaowei Wang, Junchen Han
+**Team members**:Chenxi Guo, Jiayi Peng, Chaowei Wang, Juncheng Han
 
 ## Abstract
 Transformer models achieve strong performance in natural language processing but incur substantial computational and memory costs that scale with depth. This work investigates whether recurrent Transformers with shared weights can provide a more parameter-efficient alternative to standard encoder architectures for text classification. We conduct a controlled comparison between a conventional 6-layer Transformer baseline and recurrent variants that reuse a smaller set of layers through iterative refinement, with all models trained from scratch, isolating the effect of weight sharing under matched effective depth and shared architectural components.

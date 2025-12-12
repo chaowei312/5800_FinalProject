@@ -4,7 +4,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 
 > **ANLY-5800 Final Project** | Georgetown University | Fall 2025  
-> **Team**: Chenxi Guo, Jiayi Peng, Chaowei Wang, Junchen Han
+> **Team**: Chenxi Guo, Jiayi Peng, Chaowei Wang, Juncheng Han
 
 ---
 
