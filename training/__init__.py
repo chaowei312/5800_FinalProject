@@ -2,13 +2,9 @@
 Training module for baseline and recurrent models.
 """
 
-from .trainer_base import BaseTrainer, TrainingConfig
-from .train_baseline import BaselineTrainer
-from .train_recurrent import RecurrentTrainer
+from .train import train_model, load_trained_model
 
 __all__ = [
-    'BaseTrainer',
-    'TrainingConfig',
-    'BaselineTrainer',
-    'RecurrentTrainer'
+    'train_model',
+    'load_trained_model',
 ]
