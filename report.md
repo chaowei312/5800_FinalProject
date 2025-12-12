@@ -1,11 +1,11 @@
 # Recurrent vs. Standard Transformers: Parameter and Compute-Efficient Classification Across Sentiment and Domains
 **Team members**:Chenxi Guo, Jiayi Peng, Chaowei Wang, Junchen Han
 
-# Abstract
+## Abstract
 Transformer models achieve strong performance in natural language processing but incur substantial computational and memory costs that scale with depth. This work investigates whether recurrent Transformers with shared weights can provide a more parameter-efficient alternative to standard encoder architectures for text classification. We conduct a controlled comparison between a conventional 6-layer Transformer baseline and recurrent variants that reuse a smaller set of layers through iterative refinement, isolating the effect of weight sharing under matched effective depth and shared architectural components.
 Across sentiment classification and multi-domain review tasks, we evaluate parameter efficiency and robustness under varying data scales, input lengths, and domain shifts. Our results show that recurrent Transformers maintain competitive accuracy while substantially reducing parameter count, demonstrating favorable trade-offs between model capacity and efficiency. As a supplementary deployment-oriented analysis, we examine FP16 quantization and observe stable performance with further reductions in model size and inference latency. Together, these findings indicate that iterative recurrence can effectively substitute for depth stacking in encoder-based classification tasks, offering a practical path toward parameter-efficient Transformer deployment.
 
-# Introduction
+## Introduction
 Transformer architectures dominate modern natural language processing, but their strong performance typically comes at the cost of large parameter counts and substantial computational overhead. As model depth increases, memory footprint, training cost, and inference latency grow rapidly, limiting the practicality of standard Transformers in resource-constrained or efficiency-sensitive settings. This motivates the study of parameter-efficient architectural alternatives that can preserve predictive performance while significantly reducing model size.
 
 In this work, we investigate whether recurrent Transformers with shared weights can provide a more parameter-efficient substitute for standard Transformer encoders in text classification tasks. Rather than proposing a new architecture, our goal is to systematically analyze the trade-offs between standard and recurrent Transformers under controlled parameter budgets. We compare a conventional 6-layer Transformer baseline against recurrent variants that reuse a smaller set of layers through iterative refinement, isolating the effect of weight sharing on performance and efficiency. All models share identical modern components (Flash Attention, SwiGLU, RoPE, RMSNorm) to ensure that observed differences stem from architectural structure rather than implementation choices.
@@ -13,19 +13,19 @@ In this work, we investigate whether recurrent Transformers with shared weights 
 Beyond aggregate accuracy, we evaluate robustness across multiple stress settings, including reduced training data regimes, short versus long input sequences, and cross-domain generalization. For completeness, we additionally examine the effect of FP16 quantization on model size and inference latency, treating it as a deployment-oriented optimization rather than a primary modeling contribution. These experiments allow us to assess not only whether recurrent Transformers are parameter-efficient, but under what conditions such efficiency remains reliable. Our findings show that recurrent Transformers can maintain competitive performance with substantially fewer parameters across a range of realistic constraints, supporting their use as a practical and efficient alternative to standard Transformer encoders for classification tasks.
 
 
-# Related Work
+## Related Work
 Recent advances in depth-recurrent transformer architectures offer a promising direction for model compression. The Universal Transformer [1] introduced the concept of applying the same transformation block iteratively, effectively trading parameters for computation. More recent work has extended this idea: the Mixture-of-Recursions (MoR) framework [2] combines parameter sharing with adaptive computation, dynamically allocating depth per token. Similarly, the Tiny Recursive Model (TRM) [5] demonstrates that a compact ~7M parameter network with recursive reasoning can outperform much larger models on complex tasks like ARC-AGI benchmarks.
 
 These developments are particularly relevant in the context of reasoning-intensive tasks, where deeper processing has been shown to improve performance. By reusing layers across multiple iterations, recurrent transformers can achieve an effective depth that exceeds their physical layer count, enabling smaller models to develop richer representations without the parameter overhead of traditional deep networks.
 
 Modern transformer implementations also benefit from architectural innovations such as Rotary Position Embedding (RoPE) [3], which encodes relative positional information directly into attention computations, and SwiGLU activation functions [4], which provide improved gradient flow through gated linear units. These components have become standard in efficient transformer designs.
 
-# Methods
+## Methods
 
-##  Theory
+###  Theory
 This section describes the core architectural components shared by our models. By strictly standardizing these modern components (RoPE, SwiGLU, RMSNorm), we ensure that observed performance differences arise solely from the architectural distinction (depth stacking vs. recurrence) rather than implementation discrepancies.
 
-### Transformer Layer Formulation
+#### Transformer Layer Formulation
 Both models are built upon a standard pre-norm Transformer encoder layer. Given an input representation $\mathbf{h}_l \in \mathbb{R}^{d}$ at layer $l$, a single Transformer layer computes:
 
 $$
@@ -38,7 +38,7 @@ $$
 
 where $\mathrm{MHA}$ denotes multi-head self-attention, $\mathrm{FFN}$ is a position-wise feed-forward network, and $\mathrm{Norm}$ corresponds to RMSNorm.
 
-### Recurrent Transformer Formulation
+#### Recurrent Transformer Formulation
 The recurrent Transformer replaces depth stacking with iterative refinement using shared parameters. Let $\mathbf{h}^{(r)}$ denote the hidden state at recurrence step $r$. One recurrent iteration applies a stack of $N$ shared Transformer layers:
 
 $$
@@ -47,7 +47,7 @@ $$
 
 where $\mathcal{F}$ represents the shared Transformer block and $\alpha$ is a residual scaling factor. After $R$ recurrence steps, the effective depth is $D_{\text{eff}} = N \times R$, allowing the model to match the representational depth of the baseline while using substantially fewer parameters.
 
-### SwiGLU Feed-Forward Network
+#### SwiGLU Feed-Forward Network
 We adopt the SwiGLU activation to improve gradient flow. Given input $\mathbf{x}$, the feed-forward network is:
 
 $$
@@ -56,7 +56,7 @@ $$
 
 where $\odot$ denotes element-wise multiplication. SwiGLU's gating mechanism improves representation capacity compared to standard GELU-based FFNs.
 
-### Rotary Positional Embeddings (RoPE)
+#### Rotary Positional Embeddings (RoPE)
 
 To encode positional information, we apply Rotary Positional Embeddings (RoPE) to query and key vectors by rotating each 2D feature pair.  
 For position $m$ and pair index $i$, the rotation frequency is defined as
@@ -80,7 +80,7 @@ This formulation induces relative-position attention behavior, such that attenti
 
 
 
-### RMS Normalization
+#### RMS Normalization
 We use RMSNorm for computational efficiency. Given input $\mathbf{x} \in \mathbb{R}^d$:
 
 $$
@@ -89,7 +89,7 @@ $$
 
 where $\gamma$ is a learnable scale parameter. RMSNorm maintains training stability while reducing overhead by omitting mean-centering.
 
-### Loss Function for Optimization Objective
+#### Loss Function for Optimization Objective
 
 
 We optimize both models using the standard Cross-Entropy loss. Given a dataset $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$, where $x_i$ is the input sequence and $y_i$ is the ground truth label, the training objective is to minimize:
@@ -100,18 +100,18 @@ $$
 
 where $C$ is the number of classes, $\mathbb{1}(\cdot)$ is the indicator function, and $P(c | x_i; \theta)$ is the probability predicted by the model (after Softmax).
 
-## Model Architectures
 We evaluate two encoder-only transformer architectures designed to isolate the effect of iterative recurrent refinement versus standard depth stacking. Both models utilize identical architectural components—Flash Attention, SwiGLU feed-forward networks, rotary positional embeddings (RoPE), and RMSNorm—to ensure a controlled comparison.
 
+### Model Architectures
 
-### Baseline Transformer
+#### Baseline Transformer
 
 The baseline follows a conventional pre-norm transformer encoder with 6 layers and a hidden dimensionality of 384. Table 1 summarizes the architectural configuration.
 
 <!-- \begin{center}
-{\small \textbf{Table 4. Baseline Transformer Configuration}}
+{\small \textbf{Table 1. Baseline Transformer Configuration}}
 \end{center} -->
-Table 4. Baseline Transformer Configuration
+Table 1. Baseline Transformer Configuration
 
 | Component | Value |
 |----------|-------|
@@ -119,7 +119,7 @@ Table 4. Baseline Transformer Configuration
 | Hidden dimension | 384 |
 | Attention heads | 6 |
 | FFN intermediate size | 1536 |
-| Total parameters | 26M |
+| Total parameters | 25,912,706 |
 
 Each layer consists of a multi-head self-attention block followed by a feed-forward network (FFN), both wrapped with pre-norm residual connections:
 
@@ -138,14 +138,14 @@ $$
 
 
 
-### Recurrent Transformer
+#### Recurrent Transformer
 
 The recurrent architecture employs iterative refinement to achieve an effective depth comparable to the baseline while using substantially fewer parameters. Instead of stacking 6 distinct layers, the model uses 3 shared layers unrolled for 2 iterations.
 
 <!-- \begin{center}
-{\small \textbf{Table 5. Recurrent Transformer Configuration}}
+{\small \textbf{Table 2. Recurrent Transformer Configuration}}
 \end{center} -->
-Table 5. Recurrent Transformer Configuration
+Table 2. Recurrent Transformer Configuration
 
 
 | Component | Value |
@@ -155,7 +155,7 @@ Table 5. Recurrent Transformer Configuration
 | Hidden dimension | 256 |
 | Attention heads | 4 |
 | FFN intermediate size | 1024 |
-| Total parameters | 11M |
+| Total parameters | 10,972,162 |
 
 Let $h^{(r)}$ denote the hidden representation at iteration $r$. Each iteration applies the same 3-layer block:
 
@@ -173,7 +173,7 @@ This design follows prior iterative-refinement encoder models and enables parame
 
 
 
-### Rationale for Fixed Configurations
+#### Rationale for Fixed Configurations
 
 To ensure a meaningful and controlled comparison, architectural hyperparameters are held constant across both models:
 
@@ -185,7 +185,7 @@ This controlled setup isolates the architectural contribution of recurrence, all
 
 
 
-### Shared Architectural Components
+#### Shared Architectural Components
 
 1. Flash Attention for memory-efficient attention computation  
 2. SwiGLU feed-forward networks  
@@ -205,9 +205,9 @@ To assess the generalization capability and computational efficiency of the recu
 SST-2 consists of concise movie review excerpts, with sequence lengths concentrated between 0 and 50 tokens. This dataset emphasizes sentiment cues embedded in short syntactic patterns. Label distributions across all splits exhibit a mild positive skew.
 
 <!-- \begin{center}
-{\small \textbf{Table 1. SST-2 Label Distribution}}
+{\small \textbf{Table 3. SST-2 Label Distribution}}
 \end{center} -->
-Table 1. SST-2 Label Distribution
+Table 3. SST-2 Label Distribution
 
 | Split | Label 0 (%) | Label 1 (%) | n |
 |-------|-------------|-------------|---------|
@@ -220,9 +220,9 @@ Table 1. SST-2 Label Distribution
 Yelp reviews include substantially longer paragraphs, with some sequences reaching approximately 1,000 tokens. This dataset enables evaluating the model’s ability to capture long-range dependencies. The class distribution is nearly symmetric, minimizing confounding effects arising from label imbalance.
 
 <!-- \begin{center}
-{\small \textbf{Table 2. Yelp Label Distribution}}
+{\small \textbf{Table 4. Yelp Label Distribution}}
 \end{center} -->
-Table 2. Yelp Label Distribution
+Table 4. Yelp Label Distribution
 
 | Split | Label 0 (%) | Label 1 (%) | n |
 |-------|-------------|-------------|---------|
@@ -235,9 +235,9 @@ Table 2. Yelp Label Distribution
 This dataset integrates samples drawn from local business reviews, movie reviews, and online shopping reviews. Category proportions were strictly controlled to maintain balanced domain representation across splits. Text lengths span a wide range, including many long sequences.
 
 <!-- \begin{center}
-{\small \textbf{Table 3. Multi-Domain Category Distribution}}
+{\small \textbf{Table 5. Multi-Domain Category Distribution}}
 \end{center} -->
-Table 3. Multi-Domain Category Distribution
+Table 5. Multi-Domain Category Distribution
 
 | Split | Local business (%) | Movie review (%) | Online shopping (%) | n |
 |-------|---------------------|------------------|----------------------|---------|
@@ -245,9 +245,9 @@ Table 3. Multi-Domain Category Distribution
 | Validation | 33.33 | 33.33 | 33.33 | 6,822 |
 | Test | 33.33 | 33.33 | 33.33 | 6,823 |
 
-# Experiments and Results
+## Experiments and Results
 
-## Training Protocol
+### Training Protocol
 We implemented all models using PyTorch and trained them under identical conditions to ensure a fair comparison. The specific protocol is as follows, and the same training strategy is applied consistently across all experiments and data subsets.
 
 1. Optimization Configuration  
@@ -266,9 +266,9 @@ We implement early stopping to prevent overfitting, terminating training if vali
 
 We evaluate all models on the held-out test set to assess both predictive performance and efficiency. Evaluation focuses on three aspects: classification performance, parameter efficiency, and inference latency. Predictive performance is measured using Accuracy, Precision, Recall, and F1-score. Parameter efficiency is quantified by the total number of trainable parameters and model size (MB, assuming 32-bit precision). Inference efficiency is assessed by the average per-sample inference time (in milliseconds) over the full test set, capturing the runtime impact of recurrent unrolling relative to standard depth stacking.
 
-## Experimental Design and Results
+### Experimental Design and Results
 
-### SST-2 Benchmark Evaluation (Full Dataset)
+#### SST-2 Benchmark Evaluation (Full Dataset)
 
 We evaluate the baseline transformer and the recurrent transformer on the full SST-2 dataset to examine their predictive performance, parameter efficiency, and inference characteristics. Table 1 summarizes the quantitative results, while Figure 1 illustrates the accuracy–latency trade-off, with bubble size representing overall model storage cost.
 
@@ -289,16 +289,16 @@ Table 6. SST-2 Benchmark Performance
 | Baseline   | 25,912,706 | 98.85     | 0.9061   | 0.9148 | 0.9174    | 0.9122 | 0.3706         |
 | Recurrent  | 10,972,162 | 41.86     | 0.9021   | 0.9100 | 0.9250    | 0.8955 | 0.3595         |
 
-### Data Size Sensitivity (50% / 10% SST-2)
+#### Data Size Sensitivity (50% / 10% SST-2)
 
 To assess the impact of training data scale, we conducted controlled experiments on two stratified SST-2 subsets containing 10% and 50% of the original training set, with class distributions preserved and the validation/test sets unchanged.
 
 The stratified sampling ensures both label proportions and sequence length distributions are closely matched to the original data (see Figure 2), enabling a fair comparison of model robustness under restricted resource regimes. Both architectures were trained and evaluated following the same protocol as for the full dataset.
 
 <!-- \begin{center}
-{\small \textbf{Figure 2. Text length distributions for 10% and 50% subsets}}
+{\small \textbf{Figure 1. Text length distributions for 10% and 50% subsets}}
 \end{center} -->
-Figure 2. Text length distributions for 10% and 50% subsets
+Figure 1. Text length distributions for 10% and 50% subsets
 ![](images/sst2_size_subsets_text_length_distribution.png)
 
 Both models exhibit a clear reduction in accuracy and F1 as the available training data is restricted, which is expected under low-resource conditions. Notably, the performance gap between recurrent and baseline models narrows, with the recurrent model showing relatively less degradation at the smallest data scale.
@@ -327,14 +327,14 @@ Table 8. Test results on 50% SST-2 subset
 
 With 50% of the training data, both models recover much of their accuracy, and the efficiency advantage of the recurrent architecture persists with only a modest absolute gap in test performance.
 
-### Length-Based Sensitivity (Short vs Long on SST-2)
+#### Length-Based Sensitivity (Short vs Long on SST-2)
 
 To study how input length influences model performance, we extract the shortest 30% and longest 30% of SST-2 samples and train each model separately on short-only and long-only subsets. The distributions shown in Figure 3 illustrate a clear separation between the two regimes: short subsets contain predominantly 1–2 token sequences, whereas long subsets span 20–50 tokens and exhibit substantially higher lexical diversity.
 
 <!-- \begin{center}
-{\small \textbf{Figure 3. Word Count Distributions for Short and Long SST-2 Subsets}}
+{\small \textbf{Figure 2. Word Count Distributions for Short and Long SST-2 Subsets}}
 \end{center} -->
-Figure 3. Word Count Distributions for Short and Long SST-2 Subsets  
+Figure 2. Word Count Distributions for Short and Long SST-2 Subsets  
 ![](images/sst2_length_subsets_histograms.png){width=90%}
 
 Model performance on the long-text subset is summarized in Table 9. Despite using fewer than half the parameters, the recurrent transformer slightly outperforms the baseline in accuracy and yields noticeably higher F1 and recall. This suggests that recurrent depth-sharing provides an advantage when modeling extended contextual dependencies. Although its inference latency is marginally higher, the improvement in predictive performance combined with a significantly smaller model footprint indicates a favorable efficiency–performance trade-off.
@@ -362,9 +362,9 @@ Table 10. Short-Sequence SST-2 Subset Performance
 | Baseline   | 25,912,706 | 98.85     | 0.7610   | 0.7739 | 0.7971    | 0.7520 | 0.2985         |
 | Recurrent  | 10,972,162 | 41.86     | 0.7522   | 0.7732 | 0.7701    | 0.7763 | 0.2959         |
 
-### Cross-Domain Architectural Consistency Analysis on Yelp
+#### Cross-Domain Architectural Consistency Analysis on Yelp
 
-### Multi-Domain Review Classification (3-class)
+#### Multi-Domain Review Classification (3-class)
 We extend our evaluation to a three-class domain classification task (Movie, Yelp, Amazon) to assess whether the models can distinguish stylistic and distributional differences across review sources, beyond simple sentiment polarity. By matching each domain’s data size to SST-2, this setting provides a balanced and more challenging multi-class benchmark for comparing the Baseline and Recurrent Transformers, offering clearer insight into architectural differences.
 
 Both models achieve near-perfect performance on the multi-domain three-class task, with the recurrent transformer showing a slight but consistent improvement in accuracy and F1, as summarized in Table 12.
@@ -380,14 +380,14 @@ Table 12. Multi-Domain 3-Class Classification Results
 | Baseline   | 25,913,091 | 98.85     | 0.9840   | 0.9840 | 0.9841    | 0.9840 | 0.3304         |
 | Recurrent  | 10,972,419 | 41.86     | 0.9865   | 0.9865 | 0.9865    | 0.9865 | 0.3228         |
 
-### Supplementary Deployment Analysis: Precision and Quantization Effects
+#### Supplementary Deployment Analysis: Precision and Quantization Effects
 
 To evaluate deployment characteristics, we compare model architectures and numerical precision with an emphasis on memory footprint, inference latency, and robustness to FP16 quantization. The Recurrent-Light (Benchmark, hidden size = 256) model serves as the primary reference, as it matches the recurrent configuration used in the main experiments. The Baseline (Benchmark) employs a standard 6-layer transformer with matched effective depth, providing a consistent non-recurrent comparison.
 
 In addition, we include a Recurrent (Wider, hidden size = 384) variant as an auxiliary experiment. This configuration is not part of the benchmark comparison and is introduced solely to isolate the effect of recurrent weight sharing under FP16 quantization while controlling for representational width. Together, these settings disentangle architectural form, capacity, and numerical precision in a deployment-focused evaluation.
 
 
-#### Experimental Configurations
+##### Experimental Configurations
 
 We evaluate three model families, each under FP32 and FP16 precision:
 
@@ -401,7 +401,7 @@ We evaluate three model families, each under FP32 and FP16 precision:
    A parameter-efficient recurrent transformer with depth sharing and reduced width (hidden size = 256), representing the main experimental configuration and deployment benchmark.
 
 
-#### Quantitative Results
+##### Quantitative Results
 
 <!-- \begin{center}
 {\small \textbf{Table 13. Deployment Performance Comparison under FP32 and FP16 Precision.}}
@@ -423,9 +423,21 @@ Under the benchmark configuration, the Recurrent-Light (Benchmark) model exhibit
 
 ### Key Findings
 
+This study compares standard depth-stacked Transformers with recurrent Transformers that share weights under a controlled classification setting. On short-text benchmarks such as SST-2, the standard Transformer achieves slightly higher accuracy, but at more than twice the parameter and memory cost. The recurrent architecture retains competitive performance while reducing parameters by approximately 58%, demonstrating that iterative refinement can effectively replace explicit depth stacking for short contexts.
+
+On longer-text and more complex settings, including Yelp reviews and multi-domain classification, recurrent Transformers consistently match or outperform the baseline despite their smaller size. These results indicate that recurrence is particularly effective for modeling long-range dependencies. In deployment-oriented evaluations, FP16 quantization remains stable across architectures, reducing memory usage by about 50% and improving inference latency with negligible performance loss. Overall, recurrent Transformers offer a favorable efficiency–performance trade-off, especially for long-context and cross-domain tasks.
+
 ### Limitations
 
+Our experiments are limited to encoder-only classification tasks, and the benefits of recurrence may not extend directly to generative or sequence-to-sequence models. Effective depth matching is approximate, as recurrent unrolling differs from independently parameterized layers in optimization behavior. Additionally, sequential recurrence may limit parallelism on certain hardware.
+
 ### Future Directions
+
+Future work may explore adaptive recurrence, where the number of refinement steps varies with input complexity, as well as extending recurrent architectures to large-scale pretraining. Combining recurrence with other parameter-efficient techniques is another promising direction.
+
+In summary, recurrent Transformers provide a practical and efficient alternative to depth-stacked architectures by trading parameters for computation, with clear advantages in long-context and multi-domain classification settings.
+
+
 
 
 ## References
