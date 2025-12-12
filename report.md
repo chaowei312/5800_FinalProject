@@ -336,7 +336,7 @@ To study how input length influences model performance, we extract the shortest 
 {\small \textbf{Figure 2. Word Count Distributions for Short and Long SST-2 Subsets}}
 \end{center} -->
 Figure 2. Word Count Distributions for Short and Long SST-2 Subsets  
-![](images/sst2_length_subsets_histograms.png){width=90%}
+![](images/sst2_length_subsets_histograms.png)
 
 Model performance on the long-text subset is summarized in Table 9. Despite using fewer than half the parameters, the recurrent transformer slightly outperforms the baseline in accuracy and yields noticeably higher F1 and recall. This suggests that recurrent depth-sharing provides an advantage when modeling extended contextual dependencies. Although its inference latency is marginally higher, the improvement in predictive performance combined with a significantly smaller model footprint indicates a favorable efficiency–performance trade-off.
 
