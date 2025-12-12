@@ -291,6 +291,42 @@ Table 6. SST-2 Benchmark Performance
 
 ### Data Size Sensitivity (50% / 10% SST-2)
 
+To assess the impact of training data scale, we conducted controlled experiments on two stratified SST-2 subsets containing 10% and 50% of the original training set, with class distributions preserved and the validation/test sets unchanged.
+
+The stratified sampling ensures both label proportions and sequence length distributions are closely matched to the original data (see Figure 2), enabling a fair comparison of model robustness under restricted resource regimes. Both architectures were trained and evaluated following the same protocol as for the full dataset.
+
+<!-- \begin{center}
+{\small \textbf{Figure 2. Text length distributions for 10% and 50% subsets}}
+\end{center} -->
+Figure 2. Text length distributions for 10% and 50% subsets
+![](images/sst2_size_subsets_text_length_distribution.png)
+
+Both models exhibit a clear reduction in accuracy and F1 as the available training data is restricted, which is expected under low-resource conditions. Notably, the performance gap between recurrent and baseline models narrows, with the recurrent model showing relatively less degradation at the smallest data scale.
+
+Tables 7 and 8 summarize the primary results. These findings reinforce that the recurrent model preserves strong parameter and memory efficiency with only moderate performance loss, even when training data is severely limited. This extends and supports the overall robustness-efficiency trade-off observed throughout our study.
+
+<!-- \begin{center}
+{\small \textbf{Table 7. Test results on 10% SST-2 subset}}
+\end{center} -->
+Table 7. Test results on 10% SST-2 subset
+| Model     | Parameters | Size (MB) | Accuracy | F1     | Precision | Recall | Inference (ms) |
+|-----------|------------|-----------|----------|--------|-----------|--------|----------------|
+| Baseline  | 25,912,706 | 98.85     | 0.7661   | 0.7665 | 0.7798    | 0.7614 | 0.372          |
+| Recurrent | 10,972,162 | 41.86     | 0.7453   | 0.7451 | 0.7696    | 0.7467 | 0.364          |
+
+With 10% of the training data, the recurrent model maintains competitive performance in the extremely data-limited setting relative to the baseline while requiring less than half the parameters and memory.
+
+<!-- \begin{center}
+{\small \textbf{Table 8. Test results on 50% SST-2 subset}}
+\end{center} -->
+Table 8. Test results on 50% SST-2 subset
+| Model     | Parameters | Size (MB) | Accuracy | F1     | Precision | Recall | Inference (ms) |
+|-----------|------------|-----------|----------|--------|-----------|--------|----------------|
+| Baseline  | 25,912,706 | 98.85     | 0.8903   | 0.8965 | 0.9001    | 0.8922 | 0.360          |
+| Recurrent | 10,972,162 | 41.86     | 0.8791   | 0.8823 | 0.8960    | 0.8714 | 0.355          |
+
+With 50% of the training data, both models recover much of their accuracy, and the efficiency advantage of the recurrent architecture persists with only a modest absolute gap in test performance.
+
 ### Length-Based Sensitivity (Short vs Long on SST-2)
 
 To study how input length influences model performance, we extract the shortest 30% and longest 30% of SST-2 samples and train each model separately on short-only and long-only subsets. The distributions shown in Figure 3 illustrate a clear separation between the two regimes: short subsets contain predominantly 1–2 token sequences, whereas long subsets span 20–50 tokens and exhibit substantially higher lexical diversity.
