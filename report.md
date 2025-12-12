@@ -2,7 +2,8 @@
 **Team members**:Chenxi Guo, Jiayi Peng, Chaowei Wang, Junchen Han
 
 ## Abstract
-Transformer models achieve strong performance in natural language processing but incur substantial computational and memory costs that scale with depth. This work investigates whether recurrent Transformers with shared weights can provide a more parameter-efficient alternative to standard encoder architectures for text classification. We conduct a controlled comparison between a conventional 6-layer Transformer baseline and recurrent variants that reuse a smaller set of layers through iterative refinement, isolating the effect of weight sharing under matched effective depth and shared architectural components.
+Transformer models achieve strong performance in natural language processing but incur substantial computational and memory costs that scale with depth. This work investigates whether recurrent Transformers with shared weights can provide a more parameter-efficient alternative to standard encoder architectures for text classification. We conduct a controlled comparison between a conventional 6-layer Transformer baseline and recurrent variants that reuse a smaller set of layers through iterative refinement, with all models trained from scratch, isolating the effect of weight sharing under matched effective depth and shared architectural components.
+
 Across sentiment classification and multi-domain review tasks, we evaluate parameter efficiency and robustness under varying data scales, input lengths, and domain shifts. Our results show that recurrent Transformers maintain competitive accuracy while substantially reducing parameter count, demonstrating favorable trade-offs between model capacity and efficiency. As a supplementary deployment-oriented analysis, we examine FP16 quantization and observe stable performance with further reductions in model size and inference latency. Together, these findings indicate that iterative recurrence can effectively substitute for depth stacking in encoder-based classification tasks, offering a practical path toward parameter-efficient Transformer deployment.
 
 ## Introduction
@@ -363,6 +364,26 @@ Table 10. Short-Sequence SST-2 Subset Performance
 | Recurrent  | 10,972,162 | 41.86     | 0.7522   | 0.7732 | 0.7701    | 0.7763 | 0.2959         |
 
 #### Cross-Domain Architectural Consistency Analysis on Yelp
+SST-2 and Yelp are both sentiment analysis datasets, but they differ in how sentiment is expressed. SST-2 contains movie reviews, where opinions are usually short and more abstract. Yelp reviews, in contrast, describe specific experiences with businesses, such as food quality, service, or pricing. In addition to these conceptual differences, the Yelp dataset also contains much longer texts compared to SST-2.
+
+
+
+To address this, we also train and evaluate the models on the Yelp dataset. The Yelp data is matched to SST-2 in size, and the same binary sentiment classification task is used. By keeping the two datasets the same size, we can reduce other sources of variation. This allows us to directly compare the performance of the Baseline and Recurrent models under domain shift and assess their robustness.
+
+<!-- \begin{center}
+{\small \textbf{Table 11. Yelp dataset under same size as SST-2 Performance}}
+\end{center} -->
+Table 11. Yelp dataset under same size as SST-2 Performance
+
+| Model      | Parameters | Size (MB) | Accuracy | F1     | Precision | Recall | Inference (ms) |
+|------------|------------|-----------|----------|--------|-----------|--------|----------------|
+| Baseline   | 25,912,706  | 98.85     | 0.8796   | 0.8721 | 0.8818    | 0.8627  | 0.1261         |
+| Recurrent  | 10,972,162 | 41.86     | 0.8956   | 0.8721 | 0.8913    | 0.8892| 0.1346         |
+
+
+The Baseline model has an accuracy of 0.8796 and an F1 score of 0.8721. The Recurrent model achieves a higher accuracy of 0.8956 and a higher F1 score of 0.8902, even though it uses less than half the number of parameters. 
+
+These results suggest that the relative performance of the two architectures does not change significantly when moving from movie reviews to Yelp reviews. The difference between these models remains small, but the recurrent transformer achieve better results with a smaller model size, which shows its potential to be a powerful alternative.
 
 #### Multi-Domain Review Classification (3-class)
 We extend our evaluation to a three-class domain classification task (Movie, Yelp, Amazon) to assess whether the models can distinguish stylistic and distributional differences across review sources, beyond simple sentiment polarity. By matching each domain’s data size to SST-2, this setting provides a balanced and more challenging multi-class benchmark for comparing the Baseline and Recurrent Transformers, offering clearer insight into architectural differences.

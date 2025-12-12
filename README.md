@@ -1,4 +1,4 @@
-# Recurrent vs. Standard Transformers: Parameter-Efficient Classification Across Sentiment and Domains
+# Recurrent vs. Standard Transformers: Parameter and Compute-Efficient Classification Across Sentiment and Domains
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
@@ -80,7 +80,7 @@ python training/train_baseline.py \
     --config configs/bert_small_config.json \
     --batch_size 32 \
     --learning_rate 2e-5 \
-    --num_epochs 10
+    --num_epochs 5
 
 # Train recurrent model
 python training/train_recurrent.py \
@@ -127,7 +127,7 @@ We conducted five core experiments to systematically evaluate parameter efficien
    Models are trained on 10%, 50%, and 100% of the SST-2 training set.
    The recurrent architecture demonstrates improved sample efficiency and more stable performance in low-data regimes.
 
-2. **Text Length Robustness**
+2. **Text Length Sensitivity**
    Performance is evaluated separately on short and long input sequences derived from SST-2.
    The recurrent model consistently performs better on longer sequences, suggesting that iterative refinement effectively captures extended contextual dependencies.
 
@@ -164,6 +164,15 @@ See [`proposal.md`](proposal.md) for mathematical formulations and [`app/ARCHITE
 ---
 
 ## Interactive Demo
+
+
+### Text Classification Web Application
+
+```bash
+python web_app.py
+````
+
+Then open the browser at: [http://localhost:5000](http://localhost:5000)
 
 ### SwiGLU Visualization
 
