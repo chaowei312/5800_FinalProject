@@ -193,7 +193,7 @@ This controlled setup isolates the architectural contribution of recurrence, all
 3. Rotary Positional Embeddings (RoPE)  
 4. RMSNorm for stable pre-norm training dynamics  
 
-By controlling for these components, any observed performance differences can be attributed primarily to the structural distinction between stacked depth and recurrent iterative depth.
+By controlling for these components, any observed performance differences can be attributed primarily to the structural distinction between stacked depth and recurrent iterative depth. While effective depth is matched numerically, we acknowledge that recurrent unrolling differs from independently parameterized layers in optimization dynamics; our goal is to control representational depth rather than enforce identical training trajectories.
 
 ## Datasets Overview
 
@@ -271,14 +271,7 @@ We evaluate all models on the held-out test set to assess both predictive perfor
 
 #### SST-2 Benchmark Evaluation (Full Dataset)
 
-We evaluate the baseline transformer and the recurrent transformer on the full SST-2 dataset to examine their predictive performance, parameter efficiency, and inference characteristics. Table 1 summarizes the quantitative results, while Figure 1 illustrates the accuracy–latency trade-off, with bubble size representing overall model storage cost.
-
-The baseline transformer achieves the strongest predictive performance, reaching an accuracy of 0.9061 and an F1 score of 0.9148. In comparison, the recurrent transformer attains a slightly lower accuracy (0.9021) and F1 score (0.9100), indicating a modest performance trade-off. However, this degradation is small relative to the substantial reduction in model size.
-
-Specifically, the recurrent model uses less than half the parameters of the baseline (11.0M vs. 25.9M) and reduces storage requirements by more than 55% (41.9 MB vs. 98.8 MB), while maintaining comparable inference latency (0.3595 ms vs. 0.3706 ms). Precision–recall analysis further reveals that the recurrent model exhibits higher precision but lower recall, suggesting a more conservative decision boundary.
-
-Overall, these results demonstrate that the recurrent transformer offers a favorable efficiency–performance trade-off: while the baseline model remains superior in absolute accuracy, recurrent depth-sharing enables substantial parameter and memory savings with only a minor reduction in predictive quality on short-sequence sentiment classification tasks such as SST-2.
-
+Table 6 presents the evaluation results on the SST-2 dataset. While the baseline model achieves marginally higher accuracy (0.9061), the recurrent transformer demonstrates superior efficiency with minimal performance loss. Specifically, the recurrent model reduces the parameter count and storage requirements by over 55% (11.0M vs. 25.9M parameters) while maintaining comparable inference latency. Although it exhibits a slightly more conservative decision boundary (higher precision, lower recall), the results confirm that recurrent depth-sharing offers a favorable trade-off, significantly saving memory with only negligible degradation in predictive quality.
 
 <!-- \begin{center}
 {\small \textbf{Table 6. SST-2 Benchmark Performance}}
@@ -294,7 +287,7 @@ Table 6. SST-2 Benchmark Performance
 
 To assess the impact of training data scale, we conducted controlled experiments on two stratified SST-2 subsets containing 10% and 50% of the original training set, with class distributions preserved and the validation/test sets unchanged.
 
-The stratified sampling ensures both label proportions and sequence length distributions are closely matched to the original data (see Figure 2), enabling a fair comparison of model robustness under restricted resource regimes. Both architectures were trained and evaluated following the same protocol as for the full dataset.
+The stratified sampling ensures both label proportions and sequence length distributions are closely matched to the original data (see Figure 1), enabling a fair comparison of model robustness under restricted resource regimes. Both architectures were trained and evaluated following the same protocol as for the full dataset.
 
 <!-- \begin{center}
 {\small \textbf{Figure 1. Text length distributions for 10% and 50% subsets}}
@@ -378,7 +371,7 @@ Table 11. Yelp dataset under same size as SST-2 Performance
 | Model      | Parameters | Size (MB) | Accuracy | F1     | Precision | Recall | Inference (ms) |
 |------------|------------|-----------|----------|--------|-----------|--------|----------------|
 | Baseline   | 25,912,706  | 98.85     | 0.8796   | 0.8721 | 0.8818    | 0.8627  | 0.1261         |
-| Recurrent  | 10,972,162 | 41.86     | 0.8956   | 0.8721 | 0.8913    | 0.8892| 0.1346         |
+| Recurrent  | 10,972,162 | 41.86     | 0.8956   | 0.8902 | 0.8913    | 0.8892| 0.1346         |
 
 
 The Baseline model has an accuracy of 0.8796 and an F1 score of 0.8721. The Recurrent model achieves a higher accuracy of 0.8956 and a higher F1 score of 0.8902, even though it uses less than half the number of parameters. 
@@ -438,26 +431,23 @@ Table 13. Deployment Performance Comparison under FP32 and FP16 Precision
 | Recurrent-Light (Benchmark) | FP32 | 11.0M | 41.86 | 0.8977 | 0.9082 | 0.9017 | 0.9146 | 0.403 |
 | Recurrent-Light (Benchmark) | FP16 | 11.0M | 20.93 | 0.8977 | 0.9082 | 0.9017 | 0.9146 | 0.230 |
 
-Under the benchmark configuration, the Recurrent-Light (Benchmark) model exhibits a modest reduction in accuracy compared to the Baseline (Benchmark) transformer (0.8977 vs. 0.9022), reflecting an intentional trade-off between capacity and efficiency. This performance difference is small relative to the deployment benefits: the Recurrent-Light (Benchmark) model uses less than half the parameters (11.0M vs. 25.9M) and achieves nearly an 80% reduction in storage under FP16 precision (20.9 MB vs. 98.9 MB), while maintaining comparable inference latency. Across all architectures, FP16 quantization proves highly stable, preserving accuracy and F1 while reducing model size by approximately 50% and improving inference speed by 40–45%. Moreover, the Recurrent (Wider, hidden size = 384) model outperforms the Baseline (Benchmark) under matched width, confirming that recurrent weight sharing is not inherently limiting. Overall, these results indicate that recurrent transformers, particularly the Recurrent-Light (Benchmark) configuration with FP16 precision, offer an attractive deployment-efficient alternative with minimal impact on predictive performance.
+Under the benchmark configuration, the Recurrent-Light (Benchmark) model exhibits a modest reduction in accuracy compared to the Baseline (Benchmark) transformer (0.8977 vs. 0.9022), reflecting an intentional trade-off between capacity and efficiency. This performance difference is small relative to the deployment benefits: the Recurrent-Light (Benchmark) model uses less than half the parameters (11.0M vs. 25.9M) and achieves nearly an 80% reduction in storage under FP16 precision (20.9 MB vs. 98.9 MB), while maintaining comparable inference latency. Across all architectures, FP16 quantization proves highly stable, preserving accuracy and F1 while reducing model size by approximately 50% and improving inference speed by 40–45%. Moreover, the Recurrent (Wider, hidden size = 384) model outperforms the Baseline (Benchmark) under matched width, confirming that recurrent weight sharing is not inherently limiting. Overall, these results indicate that recurrent transformers, particularly the Recurrent-Light (Benchmark) configuration with FP16 precision, offer an attractive deployment-efficient alternative with minimal impact on predictive performance. This analysis is not intended as a primary performance comparison, but as evidence that recurrent weight sharing does not impede quantization robustness under matched capacity.
 
 ## Conclusion
 
 ### Key Findings
 
-This study compares standard depth-stacked Transformers with recurrent Transformers that share weights under a controlled classification setting. On short-text benchmarks such as SST-2, the standard Transformer achieves slightly higher accuracy, but at more than twice the parameter and memory cost. The recurrent architecture retains competitive performance while reducing parameters by approximately 58%, demonstrating that iterative refinement can effectively replace explicit depth stacking for short contexts.
+We conducted a controlled comparison between standard depth-stacked Transformers and recurrent Transformers with shared weights for text classification. On short-text benchmarks such as SST-2, the standard Transformer achieves marginally higher accuracy, but at more than twice the parameter count and memory footprint. In contrast, the recurrent architecture preserves competitive performance while reducing parameters by approximately 58%, demonstrating that iterative refinement can effectively substitute explicit depth stacking in low-context settings.
 
-On longer-text and more complex settings, including Yelp reviews and multi-domain classification, recurrent Transformers consistently match or outperform the baseline despite their smaller size. These results indicate that recurrence is particularly effective for modeling long-range dependencies. In deployment-oriented evaluations, FP16 quantization remains stable across architectures, reducing memory usage by about 50% and improving inference latency with negligible performance loss. Overall, recurrent Transformers offer a favorable efficiency–performance trade-off, especially for long-context and cross-domain tasks.
+On longer and more complex inputs, including Yelp reviews and multi-domain classification tasks, recurrent Transformers consistently match or outperform the baseline despite their smaller size, suggesting particular advantages for modeling long-range dependencies. Deployment-oriented experiments further show that FP16 quantization is stable across architectures, reducing memory usage by about 50% and improving inference latency with negligible performance loss. Overall, recurrent Transformers offer a strong efficiency–performance trade-off, especially under long-context and cross-domain conditions.
 
 ### Limitations
 
-Our experiments are limited to encoder-only classification tasks, and the benefits of recurrence may not extend directly to generative or sequence-to-sequence models. Effective depth matching is approximate, as recurrent unrolling differs from independently parameterized layers in optimization behavior. Additionally, sequential recurrence may limit parallelism on certain hardware.
+This study focuses on encoder-only classification tasks, and the observed benefits may not directly transfer to generative or sequence-to-sequence settings. Moreover, effective depth matching is approximate, as recurrent unrolling differs from independently parameterized layers in optimization dynamics, and sequential recurrence may limit parallelism on some hardware.
 
 ### Future Directions
 
-Future work may explore adaptive recurrence, where the number of refinement steps varies with input complexity, as well as extending recurrent architectures to large-scale pretraining. Combining recurrence with other parameter-efficient techniques is another promising direction.
-
-In summary, recurrent Transformers provide a practical and efficient alternative to depth-stacked architectures by trading parameters for computation, with clear advantages in long-context and multi-domain classification settings.
-
+Future work may investigate adaptive recurrence mechanisms that vary refinement depth by input complexity, as well as extensions to large-scale pretraining and combinations with other parameter-efficient techniques.
 
 
 
