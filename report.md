@@ -197,7 +197,9 @@ By controlling for these components, any observed performance differences can be
 
 ## Datasets Overview
 
-To assess the generalization capability and computational efficiency of the recurrent transformer architecture, three sentiment classification datasets were employed: the Stanford Sentiment Treebank (SST-2), Yelp Reviews, and a composite Multi-Domain corpus. These datasets collectively span short-sequence, long-sequence, and cross-domain linguistic settings. For comparability, all datasets were standardized to identical training, validation, and test sizes (54,576 / 6,822 / 6,823).
+To assess the generalization capability and computational efficiency of the recurrent transformer architecture, three sentiment classification datasets were employed: the Stanford Sentiment Treebank (SST-2), Yelp Reviews, and a composite Multi-Domain corpus. These datasets collectively span short-sequence, long-sequence, and cross-domain linguistic settings.
+
+To enable a controlled and fair comparison, we deliberately subsampled each dataset to the same number of training, validation, and test instances (54,576 / 6,822 / 6,823), resulting in 68,221 samples per dataset. By matching dataset size across domains, we eliminate confounding effects arising from data scale and ensure that observed performance differences primarily reflect architectural efficiency rather than variations in training data volume.
 
 ### Dataset Characteristics
 
