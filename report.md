@@ -182,7 +182,7 @@ To ensure a meaningful and controlled comparison, architectural hyperparameters 
 2. Controlled parameter budget: The recurrent model reduces parameters by approximately 58% while maintaining comparable representational depth.
 3. Consistent scaling principles: Both models use a 4× FFN expansion ratio and standard head dimensionality.
 
-This controlled setup isolates the architectural contribution of recurrence, allowing us to analyze performance differences independent of model capacity.
+This controlled setup isolates the architectural contribution of recurrence, allowing us to analyze performance differences independent of model capacity. While effective depth is matched numerically, we acknowledge that recurrent unrolling differs from independently parameterized layers in optimization dynamics; our goal is to control representational depth rather than enforce identical training trajectories.
 
 
 
@@ -193,7 +193,7 @@ This controlled setup isolates the architectural contribution of recurrence, all
 3. Rotary Positional Embeddings (RoPE)  
 4. RMSNorm for stable pre-norm training dynamics  
 
-By controlling for these components, any observed performance differences can be attributed primarily to the structural distinction between stacked depth and recurrent iterative depth. While effective depth is matched numerically, we acknowledge that recurrent unrolling differs from independently parameterized layers in optimization dynamics; our goal is to control representational depth rather than enforce identical training trajectories.
+By controlling for these components, any observed performance differences can be attributed primarily to the structural distinction between stacked depth and recurrent iterative depth. 
 
 ## Datasets Overview
 
@@ -325,7 +325,7 @@ With 50% of the training data, both models recover much of their accuracy, and t
 
 #### Length-Based Sensitivity (Short vs Long on SST-2)
 
-To study how input length influences model performance, we extract the shortest 30% and longest 30% of SST-2 samples and train each model separately on short-only and long-only subsets. The distributions shown in Figure 3 illustrate a clear separation between the two regimes: short subsets contain predominantly 1–2 token sequences, whereas long subsets span 20–50 tokens and exhibit substantially higher lexical diversity.
+To study how input length influences model performance, we extract the shortest 30% and longest 30% of SST-2 samples and train each model separately on short-only and long-only subsets. The distributions shown in Figure 2 illustrate a clear separation between the two regimes: short subsets contain predominantly 1–2 token sequences, whereas long subsets span 20–50 tokens and exhibit substantially higher lexical diversity.
 
 <!-- \begin{center}
 {\small \textbf{Figure 2. Word Count Distributions for Short and Long SST-2 Subsets}}
@@ -443,14 +443,11 @@ We conducted a controlled comparison between standard depth-stacked Transformers
 
 On longer and more complex inputs, including Yelp reviews and multi-domain classification tasks, recurrent Transformers consistently match or outperform the baseline despite their smaller size, suggesting particular advantages for modeling long-range dependencies. Deployment-oriented experiments further show that FP16 quantization is stable across architectures, reducing memory usage by about 50% and improving inference latency with negligible performance loss. Overall, recurrent Transformers offer a strong efficiency–performance trade-off, especially under long-context and cross-domain conditions.
 
-### Limitations
+### Limitations 
+Our experiments are limited to encoder-only classification tasks, and the benefits of recurrence may not extend directly to generative or sequence-to-sequence models. Effective depth matching is approximate, as recurrent unrolling differs from independently parameterized layers in optimization behavior. Additionally, sequential recurrence may limit parallelism on certain hardware. 
 
-This study focuses on encoder-only classification tasks, and the observed benefits may not directly transfer to generative or sequence-to-sequence settings. Moreover, effective depth matching is approximate, as recurrent unrolling differs from independently parameterized layers in optimization dynamics, and sequential recurrence may limit parallelism on some hardware.
-
-### Future Directions
-
-Future work may investigate adaptive recurrence mechanisms that vary refinement depth by input complexity, as well as extensions to large-scale pretraining and combinations with other parameter-efficient techniques.
-
+### Future Directions 
+Future work may explore adaptive recurrence, where the number of refinement steps varies with input complexity, as well as extending recurrent architectures to large-scale pretraining. Combining recurrence with other parameter-efficient techniques is another promising direction. In summary, recurrent Transformers provide a practical and efficient alternative to depth-stacked architectures by trading parameters for computation, with clear advantages in long-context and multi-domain classification settings.
 
 
 ## References
